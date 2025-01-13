@@ -44,17 +44,17 @@ const RegisterMaintenance: React.FC = () => {
     return (
         <div className="min-h-screen bg-gray-100 p-6 flex items-center justify-center">
             <div className="max-w-md w-full bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-bold text-gray-700 mb-4">Register Maintenance for {equipment.name}</h2>
+                <h2 className="text-xl font-bold text-gray-700 mb-4">Registro de mantenimiento para {equipment.name}</h2>
                 <div className="space-y-4">
                     <textarea
-                        placeholder="Description of maintenance"
+                        placeholder="Descripcion del mantenimiento"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         className="w-full p-2 border rounded-md h-24"
                     ></textarea>
                     <input
                         type="text"
-                        placeholder="Technician Name"
+                        placeholder="Nombre del Tecnico"
                         value={technician}
                         onChange={(e) => setTechnician(e.target.value)}
                         className="w-full p-2 border rounded-md"
@@ -63,7 +63,7 @@ const RegisterMaintenance: React.FC = () => {
                         onClick={handleRegister}
                         className="w-full bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600"
                     >
-                        Register Maintenance
+                       Registrar Mantenimiento
                     </button>
                     <button
                         onClick={() => navigate(`/equipment/${id}`)}

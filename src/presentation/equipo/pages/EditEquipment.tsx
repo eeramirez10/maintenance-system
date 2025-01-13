@@ -49,25 +49,25 @@ const EditEquipmentPage: React.FC = () => {
         <div className="min-h-screen bg-gray-100 p-6 flex items-center justify-center">
             {equipment && (
                 <div className="max-w-md w-full bg-white p-6 rounded-lg shadow-md">
-                    <h2 className="text-xl font-bold text-gray-700 mb-4">Edit Equipment</h2>
+                    <h2 className="text-xl font-bold text-gray-700 mb-4">Editar equipo</h2>
                     <div className="space-y-4">
                         <input
                             type="text"
-                            placeholder="Equipment Name"
+                            placeholder="Nombre del equipo"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             className="w-full p-2 border rounded-md"
                         />
                         <input
                             type="text"
-                            placeholder="Components (comma separated)"
+                            placeholder="Componentes (separados por comas)"
                             value={components}
                             onChange={(e) => setComponents(e.target.value)}
                             className="w-full p-2 border rounded-md"
                         />
                         <input
                             type="text"
-                            placeholder="Location"
+                            placeholder="Ubicacion"
                             value={location}
                             onChange={(e) => setLocation(e.target.value)}
                             className="w-full p-2 border rounded-md"
@@ -77,15 +77,15 @@ const EditEquipmentPage: React.FC = () => {
                             onChange={(e) => setStatus(e.target.value)}
                             className="w-full p-2 border rounded-md"
                         >
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                            <option value="Under Maintenance">Under Maintenance</option>
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
+                            <option value="En Mantenimiento">En Mantenimiento</option>
                         </select>
                         <button
                             onClick={handleUpdate}
                             className="w-full bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600"
                         >
-                            Update Equipment
+                            Actualizar equipo
                         </button>
                         <button
                             onClick={() => navigate('/equipment')}

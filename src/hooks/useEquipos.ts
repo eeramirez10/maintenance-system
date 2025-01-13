@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react'
+import  { useContext } from 'react'
 
 import EquipoContext from '../context/EquipoContext'
 import { Equipment } from '../types/equipo'

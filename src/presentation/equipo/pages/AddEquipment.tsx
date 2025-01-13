@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Equipment, Failure, ScheduledMaintenance } from '../../../types/equipo';
+import { Equipment  } from '../../../types/equipo';
 import { useEquipos } from '../../../hooks/useEquipos';
 
 export const AddEquipment: React.FC = () => {

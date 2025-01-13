@@ -12,6 +12,8 @@ import RegisterMaintenance from './presentation/equipo/pages/RegisterMaintenance
 import Login from './presentation/auth/Login'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './ProtectedRoute'
+import RegisterFailure from './presentation/equipo/pages/RegisterFailure'
+import ScheduleMaintenance from './presentation/equipo/pages/ScheduleMaintenance'
 
 function App() {
 
@@ -21,7 +23,7 @@ function App() {
         <Router>
           <Routes>
             {/* Ruta Pública */}
-            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<Login />} />
 
             {/* Rutas Protegidas */}
             <Route
@@ -32,11 +34,16 @@ function App() {
                 </ProtectedRoute>
               }
             >
-              <Route index element={<Home />} />
+              <Route path='home' element={<Home />} />
               <Route path="equipment" element={<EquipmentList />} />
               <Route path="add-equipment" element={<AddEquipment />} />
               <Route path="edit-equipment/:id" element={<EditEquipmentPage />} />
               <Route path="register-maintenance/:id" element={<RegisterMaintenance />} />
+              <Route path="register-failure/:id" element={<RegisterFailure />} />
+              <Route path="schedule-maintenance/:id" element={<ScheduleMaintenance />} />
+
+
+              
               <Route path="history" element={<History />} />
               <Route path="settings" element={<Settings />} />
             </Route>
@@ -52,9 +59,9 @@ export default App
 
 const ProtectedLayout: React.FC = () => {
   return (
-    <div className="flex bg-gray-100">
+    <div className="  flex bg-gray-100">
       <Sidebar />
-      <div className="flex-1 p-6">
+      <div className="l flex-1 p-6">
         <Outlet /> {/* Renderiza las rutas anidadas aquí */}
       </div>
     </div>

@@ -1,17 +1,17 @@
 // src/components/ProtectedRoute.tsx
 import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from './hooks/useAuth';
+// import { Navigate } from 'react-router-dom';
+// import { useAuth } from './hooks/useAuth';
 
 
 const ProtectedRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
-    const { isAuthenticated } = useAuth();
+    // const { isAuthenticated } = useAuth();
 
-    console.log(isAuthenticated)
+    // console.log(isAuthenticated)
 
-    if (!isAuthenticated) {
-        return <Navigate to="/login" />;
-    }
+    // if (!isAuthenticated) {
+    //     return <Navigate to="/login" />;
+    // }
 
     return children;
 };

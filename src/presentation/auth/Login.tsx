@@ -17,7 +17,7 @@ const LoginPage: React.FC = () => {
         }
 
         // Simulate an API call
-        const isValidUser = email === 'admin@example.com' && password === 'password';
+        const isValidUser = email === 'admin' && password === 'password';
 
         if (isValidUser) {
             login()
@@ -31,12 +31,12 @@ const LoginPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center">
             <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-lg">
-                <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Welcome Back</h2>
+                <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Login</h2>
                 {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
                 <div className="space-y-6">
                     <input
                         type="email"
-                        placeholder="Email Address"
+                        placeholder="Usuario o correo"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
@@ -55,9 +55,9 @@ const LoginPage: React.FC = () => {
                         Log In
                     </button>
                 </div>
-                <p className="text-center text-gray-500 mt-6">
+                {/* <p className="text-center text-gray-500 mt-6">
                     Don’t have an account? <span className="text-indigo-500 cursor-pointer hover:underline">Sign up</span>
-                </p>
+                </p> */}
             </div>
         </div>
     );

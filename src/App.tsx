@@ -1,69 +1,86 @@
-import './App.css'
-import { EquipoProvider } from './context/EquipoContext'
-import { BrowserRouter as Router, Route, Routes, Outlet } from 'react-router-dom'
-import { Sidebar } from './presentation/sidebar/Sidebar'
-import Home from './presentation/Home/pages/Home'
-import { EquipmentList } from './presentation/equipo/pages/EquipoList'
-import History from './presentation/History/pages/History'
-import Settings from './presentation/Settings/pages/Settings'
-import { AddEquipment } from './presentation/equipo/pages/AddEquipment'
-import EditEquipmentPage from './presentation/equipo/pages/EditEquipment'
-import RegisterMaintenance from './presentation/equipo/pages/RegisterMaintenance'
-import Login from './presentation/auth/Login'
-import { AuthProvider } from './context/AuthContext'
-import ProtectedRoute from './ProtectedRoute'
-import RegisterFailure from './presentation/equipo/pages/RegisterFailure'
-import ScheduleMaintenance from './presentation/equipo/pages/ScheduleMaintenance'
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Home from './pages/Home';
+import AddEquipment from './pages/AddEquipment';
+import EditEquipment from './pages/EditEquipment';
+import { Component, Equipment } from './types';
+import Navbar from './components/Navbar';
+import mockEquipments from './mocks/equipments';
+import EquipmentDetails from './pages/EquipmentDetails';
+import ScheduleMaintenance from './pages/ScheduleMaintenance';
+import ComponentListPage from './pages/ComponentListPage';
+import ComponentDetails from './pages/ComponentDetails';
+import mockComponents from './mocks/mockcomponents';
+import EditComponent from './pages/EditComponent';
 
-function App() {
+const App: React.FC = () => {
+  const [equipments, setEquipments] = useState<Equipment[]>(mockEquipments);
+  const [components, setComponents] = useState(mockComponents);
+
+
+  const handleAdd = (equipment: Omit<Equipment, 'id'>) => {
+    setEquipments([...equipments, { id: Date.now(), ...equipment }]);
+  };
+
+  const handleUpdate = (updatedEquipment: Equipment) => {
+    setEquipments(
+      equipments.map((equip) =>
+        equip.id === updatedEquipment.id ? updatedEquipment : equip
+      )
+    );
+  };
+
+  const handleDelete = (id: number) => {
+    setEquipments(equipments.filter((equip) => equip.id !== id));
+  };
+
+
+  const handleDeleteComponent = (id: number) => {
+    const confirmed = window.confirm('¿Estás seguro de que deseas eliminar este componente?');
+    if (confirmed) {
+      setComponents(components.filter((component) => component.id !== id));
+    }
+  };
+
+  const handleUpdateComponent = (updatedComponent: Component) => {
+    setComponents((prevComponents) =>
+      prevComponents.map((comp) =>
+        comp.id === updatedComponent.id ? updatedComponent : comp
+      )
+    );
+  };
 
   return (
-    <AuthProvider>
-      <EquipoProvider>
-        <Router>
-          <Routes>
-            {/* Ruta Pública */}
-            <Route path="/" element={<Login />} />
+    <Router>
+      <Navbar />
+      <Routes>
+        <Route
+          path="/"
+          element={<Home equipments={equipments} onDelete={handleDelete} />}
+        />
+        <Route path="/add" element={<AddEquipment onAdd={handleAdd} />} />
+        <Route
+          path="/equipment/:id"
+          element={<EquipmentDetails equipments={equipments} />}
+        />
+        <Route
+          path="/edit-equipment/:id"
+          element={<EditEquipment equipments={equipments} onUpdate={handleUpdate} />}
+        />
 
-            {/* Rutas Protegidas */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <ProtectedLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route path='home' element={<Home />} />
-              <Route path="equipment" element={<EquipmentList />} />
-              <Route path="add-equipment" element={<AddEquipment />} />
-              <Route path="edit-equipment/:id" element={<EditEquipmentPage />} />
-              <Route path="register-maintenance/:id" element={<RegisterMaintenance />} />
-              <Route path="register-failure/:id" element={<RegisterFailure />} />
-              <Route path="schedule-maintenance/:id" element={<ScheduleMaintenance />} />
+        <Route
+          path="/schedule-maintenance/:id"
+          element={<ScheduleMaintenance equipments={equipments} onUpdate={handleUpdate} />}
+        />
 
-
-              
-              <Route path="history" element={<History />} />
-              <Route path="settings" element={<Settings />} />
-            </Route>
-          </Routes>
-        </Router>
-      </EquipoProvider>
-    </AuthProvider>
-  )
-}
-
-export default App
+<Route path="/components" element={<ComponentListPage components={components} onDelete={handleDeleteComponent} />} />
+<Route path="/component/:id" element={<ComponentDetails components={components} />} />
+<Route path="/edit-component/:id" element={<EditComponent components={components} onUpdate={handleUpdateComponent } />} />
 
 
-const ProtectedLayout: React.FC = () => {
-  return (
-    <div className="  flex bg-gray-100">
-      <Sidebar />
-      <div className="l flex-1 p-6">
-        <Outlet /> {/* Renderiza las rutas anidadas aquí */}
-      </div>
-    </div>
+      </Routes>
+    </Router>
   );
 };
+
+export default App;

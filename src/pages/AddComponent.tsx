@@ -108,10 +108,10 @@ const AddComponent: React.FC<AddComponentProps> = ({ onAdd }) => {
       setErrorMessage('El tipo de componente es obligatorio.');
       return;
     }
-    if (relatedEquipmentId === null) {
-      setErrorMessage('Debe estar relacionado con un equipo.');
-      return;
-    }
+    // if (relatedEquipmentId === null) {
+    //   setErrorMessage('Debe estar relacionado con un equipo.');
+    //   return;
+    // }
 
     const newComponent: Component = {
       id: Date.now(),
@@ -125,7 +125,7 @@ const AddComponent: React.FC<AddComponentProps> = ({ onAdd }) => {
     };
 
     onAdd(newComponent);
-    navigate(`/equipment/${relatedEquipmentId}`); // Redirige al detalle del equipo
+    navigate(`/components`); // Redirige al detalle del equipo
   };
 
   return (

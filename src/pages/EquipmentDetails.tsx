@@ -1,6 +1,6 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Equipment } from '../types';
+import { Equipment, Component } from '../types';
 import { calculateRemaining } from '../utils/calculateRemaining';
 
 interface EquipmentDetailsProps {
@@ -12,15 +12,13 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipments, compone
   const { id } = useParams<{ id: string }>();
   const equipment = equipments.find((eq) => eq.id === Number(id));
 
-  console.log(components)
-
   if (!equipment) {
     return <div className="p-8 text-center">Equipo no encontrado.</div>;
   }
 
   // Filtrar componentes relacionados con este equipo
-  const relatedComponents = components.filter((component) =>
-    component.relatedEquipmentIds?.includes(equipment.id)
+  const relatedComponents = components.filter(
+    (component) => component.relatedEquipmentId === equipment.id
   );
 
   return (

@@ -12,10 +12,20 @@ import ComponentListPage from './pages/ComponentListPage';
 import ComponentDetails from './pages/ComponentDetails';
 import mockComponents from './mocks/mockcomponents';
 import EditComponent from './pages/EditComponent';
+import LinkComponentsPage from './pages/LinkComponentsPage';
 
 const App: React.FC = () => {
   const [equipments, setEquipments] = useState<Equipment[]>(mockEquipments);
   const [components, setComponents] = useState(mockComponents);
+
+
+  const handleLinkComponent = (equipmentId: number, componentId: number) => {
+    setComponents((prevComponents) =>
+      prevComponents.map((component) =>
+        component.id === componentId ? { ...component, relatedEquipmentId: equipmentId } : component
+      )
+    );
+  };
 
 
   const handleAdd = (equipment: Omit<Equipment, 'id'>) => {
@@ -55,13 +65,13 @@ const App: React.FC = () => {
       <Navbar />
       <Routes>
         <Route
-          path="/"
+          path="/equipments"
           element={<Home equipments={equipments} onDelete={handleDelete} />}
         />
         <Route path="/add" element={<AddEquipment onAdd={handleAdd} />} />
         <Route
           path="/equipment/:id"
-          element={<EquipmentDetails equipments={equipments} />}
+          element={<EquipmentDetails equipments={equipments} components={components} onLinkComponent={handleLinkComponent } />}
         />
         <Route
           path="/edit-equipment/:id"
@@ -73,9 +83,21 @@ const App: React.FC = () => {
           element={<ScheduleMaintenance equipments={equipments} onUpdate={handleUpdate} />}
         />
 
-<Route path="/components" element={<ComponentListPage components={components} onDelete={handleDeleteComponent} />} />
-<Route path="/component/:id" element={<ComponentDetails components={components} />} />
-<Route path="/edit-component/:id" element={<EditComponent components={components} onUpdate={handleUpdateComponent } />} />
+        <Route
+          path="/link-components/:id"
+          element={
+            <LinkComponentsPage
+              equipments={equipments}
+              components={components}
+              onLinkComponent={handleLinkComponent}
+            />
+          }
+        />
+
+
+        <Route path="/components" element={<ComponentListPage components={components} onDelete={handleDeleteComponent} />} />
+        <Route path="/component/:id" element={<ComponentDetails components={components} />} />
+        <Route path="/edit-component/:id" element={<EditComponent components={components} onUpdate={handleUpdateComponent} />} />
 
 
       </Routes>

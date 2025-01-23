@@ -13,6 +13,9 @@ import ComponentDetails from './pages/ComponentDetails';
 import mockComponents from './mocks/mockcomponents';
 import EditComponent from './pages/EditComponent';
 import LinkComponentsPage from './pages/LinkComponentsPage';
+import AddComponent from './pages/AddComponent';
+import LinkComponentToEquipmentPage from './pages/LinkComponentToEquipmentPage';
+import Dashboard from './pages/Dashboard';
 
 const App: React.FC = () => {
   const [equipments, setEquipments] = useState<Equipment[]>(mockEquipments);
@@ -28,7 +31,7 @@ const App: React.FC = () => {
   };
 
 
-  const handleAdd = (equipment: Omit<Equipment, 'id'>) => {
+  const handleAddEquipment = (equipment: Omit<Equipment, 'id'>) => {
     setEquipments([...equipments, { id: Date.now(), ...equipment }]);
   };
 
@@ -60,6 +63,18 @@ const App: React.FC = () => {
     );
   };
 
+  const handleAddComponent = (newComponent: Component) => {
+    setComponents((prevComponents) => [...prevComponents, newComponent]);
+  };
+
+  const handleLinkComponentToEquipment = (componentId: number, equipmentId: number) => {
+    setComponents((prevComponents) =>
+      prevComponents.map((component) =>
+        component.id === componentId ? { ...component, relatedEquipmentId: equipmentId } : component
+      )
+    );
+  };
+
   return (
     <Router>
       <Navbar />
@@ -68,10 +83,13 @@ const App: React.FC = () => {
           path="/equipments"
           element={<Home equipments={equipments} onDelete={handleDelete} />}
         />
-        <Route path="/add" element={<AddEquipment onAdd={handleAdd} />} />
+        <Route
+          path="/add-equipment"
+          element={<AddEquipment onAdd={handleAddEquipment} />}
+        />
         <Route
           path="/equipment/:id"
-          element={<EquipmentDetails equipments={equipments} components={components} onLinkComponent={handleLinkComponent } />}
+          element={<EquipmentDetails equipments={equipments} components={components} onLinkComponent={handleLinkComponent} />}
         />
         <Route
           path="/edit-equipment/:id"
@@ -84,6 +102,11 @@ const App: React.FC = () => {
         />
 
         <Route
+          path="/add-component"
+          element={<AddComponent onAdd={handleAddComponent} />}
+        />
+
+        <Route
           path="/link-components/:id"
           element={
             <LinkComponentsPage
@@ -93,10 +116,22 @@ const App: React.FC = () => {
             />
           }
         />
+        <Route
+          path="/link-component/:id"
+          element={
+            <LinkComponentToEquipmentPage
+              components={components}
+              equipments={equipments}
+              onLinkComponentToEquipment={handleLinkComponentToEquipment}
+            />
+          }
+        />
+
+        <Route path="/" element={<Dashboard equipments={equipments} />} />
 
 
         <Route path="/components" element={<ComponentListPage components={components} onDelete={handleDeleteComponent} />} />
-        <Route path="/component/:id" element={<ComponentDetails components={components} />} />
+        <Route path="/component/:id" element={<ComponentDetails components={components} equipments={equipments} />} />
         <Route path="/edit-component/:id" element={<EditComponent components={components} onUpdate={handleUpdateComponent} />} />
 
 

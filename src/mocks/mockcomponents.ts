@@ -5,7 +5,7 @@ const mockComponents: Component[] = [
     id: 1,
     name: 'Filtro de Aire',
     type: 'Consumible',
-    image: 'https://example.com/filter.jpg',
+    image: 'https://http2.mlstatic.com/D_NQ_NP_2X_618131-MLM71586738313_092023-F.webp',
     customFields: [
       { name: 'Marca', value: 'ACME' },
       { name: 'Vida útil (horas)', value: '500' },
@@ -38,7 +38,7 @@ const mockComponents: Component[] = [
     id: 2,
     name: 'Turbina',
     type: 'Mecánico',
-    image: 'https://example.com/turbine.jpg',
+    image: 'https://esve.mx/cdn/shop/files/extractor-de-aire-turbina-2-electrico-aerosystem-1024.png?v=1699043661&width=600',
     customFields: [
       { name: 'Modelo', value: 'TURB123' },
       { name: 'Potencia', value: '1500 HP' },
@@ -71,7 +71,7 @@ const mockComponents: Component[] = [
     id: 3,
     name: 'Sensor de Temperatura',
     type: 'Eléctrico',
-    image: 'https://example.com/sensor.jpg',
+    image: 'https://http2.mlstatic.com/D_NQ_NP_769885-MLM51329702912_082022-O.webp',
     customFields: [
       { name: 'Rango de operación', value: '-50°C a 150°C' },
       { name: 'Precisión', value: '±0.5°C' },

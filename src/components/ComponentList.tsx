@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Component } from '../types';
 import { Link } from 'react-router-dom';
+import { Component } from '../types';
 
 interface ComponentListProps {
   components: Component[];
@@ -30,7 +30,16 @@ const ComponentList: React.FC<ComponentListProps> = ({ components, onDelete }) =
 
   return (
     <div className="p-8 max-w-6xl mx-auto bg-white shadow rounded">
-      <h1 className="text-2xl font-bold mb-4">Lista de Componentes</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Lista de Componentes</h1>
+        <Link
+          to="/add-component"
+          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+        >
+          + Nuevo Componente
+        </Link>
+      </div>
+
       <table className="w-full table-auto border-collapse border border-gray-300">
         <thead>
           <tr className="bg-gray-100 text-gray-700">
@@ -52,7 +61,7 @@ const ComponentList: React.FC<ComponentListProps> = ({ components, onDelete }) =
                 <div className="flex justify-center space-x-2">
                   <Link
                     to={`/component/${component.id}`}
-                    className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                    className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                   >
                     Detalle
                   </Link>

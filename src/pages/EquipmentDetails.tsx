@@ -1,28 +1,26 @@
-import React from 'react';
+import React, { Component } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Equipment, Component } from '../types';
+import { Equipment } from '../types';
+import { calculateRemaining } from '../utils/calculateRemaining';
 
 interface EquipmentDetailsProps {
   equipments: Equipment[];
   components: Component[];
-  onLinkComponent: (equipmentId: number, componentId: number) => void;
 }
 
-const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
-  equipments,
-  components,
-  onLinkComponent,
-}) => {
+const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipments, components }) => {
   const { id } = useParams<{ id: string }>();
-  const equipment = equipments.find((equip) => equip.id === Number(id));
+  const equipment = equipments.find((eq) => eq.id === Number(id));
+
+  console.log(components)
 
   if (!equipment) {
     return <div className="p-8 text-center">Equipo no encontrado.</div>;
   }
 
-  // Filtrar los componentes relacionados con el equipo actual
-  const relatedComponents = components.filter(
-    (component) => component.relatedEquipmentId === equipment.id
+  // Filtrar componentes relacionados con este equipo
+  const relatedComponents = components.filter((component) =>
+    component.relatedEquipmentIds?.includes(equipment.id)
   );
 
   return (
@@ -38,58 +36,138 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({
       )}
 
       {/* Campos Personalizados */}
-      <h2 className="text-2xl font-bold mt-6">Campos Personalizados</h2>
-      <ul className="list-disc ml-6 text-gray-700 mb-6">
-        {equipment.customFields.map((field, index) => (
-          <li key={index}>
-            <span className="font-semibold">{field.name}:</span> {field.value}
-          </li>
-        ))}
-      </ul>
+      <section>
+        <h2 className="text-2xl font-bold mt-6 mb-4">Campos Personalizados</h2>
+        {equipment.customFields.length > 0 ? (
+          <ul className="list-disc ml-6 text-gray-700 mb-6">
+            {equipment.customFields.map((field, index) => (
+              <li key={index}>
+                <span className="font-semibold">{field.name}:</span> {field.value}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-gray-500">No hay campos personalizados registrados.</p>
+        )}
+      </section>
 
       {/* Componentes Relacionados */}
-      <h2 className="text-2xl font-bold mt-6">Componentes Relacionados</h2>
-      {relatedComponents.length ? (
-        <table className="w-full table-auto border-collapse border border-gray-300 mt-4">
-          <thead>
-            <tr className="bg-gray-100 text-gray-700">
-              <th className="border border-gray-300 px-4 py-2">#</th>
-              <th className="border border-gray-300 px-4 py-2">Nombre</th>
-              <th className="border border-gray-300 px-4 py-2">Tipo</th>
-              <th className="border border-gray-300 px-4 py-2">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {relatedComponents.map((component, index) => (
-              <tr key={component.id} className="text-gray-700 hover:bg-gray-100">
-                <td className="border border-gray-300 px-4 py-2 text-center">{index + 1}</td>
-                <td className="border border-gray-300 px-4 py-2">{component.name}</td>
-                <td className="border border-gray-300 px-4 py-2">{component.type}</td>
-                <td className="border border-gray-300 px-4 py-2 text-center">
-                  <Link
-                    to={`/component/${component.id}`}
-                    className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                  >
-                    Ver Detalle
-                  </Link>
-                </td>
+      <section>
+        <h2 className="text-2xl font-bold mt-6 mb-4">Componentes Relacionados</h2>
+        {relatedComponents.length > 0 ? (
+          <table className="w-full table-auto border-collapse border border-gray-300 mb-4">
+            <thead>
+              <tr className="bg-gray-100 text-gray-700">
+                <th className="border border-gray-300 px-4 py-2">Nombre</th>
+                <th className="border border-gray-300 px-4 py-2">Tipo</th>
+                <th className="border border-gray-300 px-4 py-2">Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <p className="text-gray-500 mt-4">
-          No hay componentes relacionados con este equipo.
-        </p>
-      )}
+            </thead>
+            <tbody>
+              {relatedComponents.map((component) => (
+                <tr key={component.id} className="text-gray-700 hover:bg-gray-100">
+                  <td className="border border-gray-300 px-4 py-2">{component.name}</td>
+                  <td className="border border-gray-300 px-4 py-2">{component.type}</td>
+                  <td className="border border-gray-300 px-4 py-2 text-center">
+                    <Link
+                      to={`/component/${component.id}`}
+                      className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    >
+                      Ver Componente
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="text-gray-500">No hay componentes relacionados.</p>
+        )}
+        <Link
+          to={`/link-components/${equipment.id}`}
+          className="block mt-4 px-4 py-2 bg-green-500 text-white text-center rounded hover:bg-green-600"
+        >
+          Ligar Componentes
+        </Link>
+      </section>
 
-      {/* Botón para Ligar Componentes */}
-      <Link
-        to={`/link-components/${equipment.id}`}
-        className="mt-6 block px-4 py-2 bg-blue-500 text-white text-center rounded hover:bg-blue-600"
-      >
-        Ligar Componentes
-      </Link>
+      {/* Mantenimientos Realizados */}
+      <section>
+        <h2 className="text-2xl font-bold mt-6 mb-4">Mantenimientos Realizados</h2>
+        {equipment.maintenances?.length > 0 ? (
+          <table className="w-full table-auto border-collapse border border-gray-300 mb-4">
+            <thead>
+              <tr className="bg-gray-100 text-gray-700">
+                <th className="border border-gray-300 px-4 py-2">Descripción</th>
+                <th className="border border-gray-300 px-4 py-2">Criterio</th>
+                <th className="border border-gray-300 px-4 py-2">Valor Actual</th>
+              </tr>
+            </thead>
+            <tbody>
+              {equipment.maintenances.map((maintenance, index) => (
+                <tr key={index} className="text-gray-700 hover:bg-gray-100">
+                  <td className="border border-gray-300 px-4 py-2">{maintenance.description}</td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {maintenance.criteria?.name || 'No definido'}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {maintenance.criteria?.type === 'date'
+                      ? maintenance.criteria.currentValue
+                      : maintenance.criteria?.currentValue || 'No definido'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="text-gray-500">No hay mantenimientos registrados.</p>
+        )}
+      </section>
+
+      {/* Mantenimientos Programados */}
+      <section>
+        <h2 className="text-2xl font-bold mt-6 mb-4">Mantenimientos Programados</h2>
+        {equipment.scheduledMaintenances?.length > 0 ? (
+          <table className="w-full table-auto border-collapse border border-gray-300">
+            <thead>
+              <tr className="bg-gray-100 text-gray-700">
+                <th className="border border-gray-300 px-4 py-2">Descripción</th>
+                <th className="border border-gray-300 px-4 py-2">Criterio</th>
+                <th className="border border-gray-300 px-4 py-2">Valor Actual</th>
+                <th className="border border-gray-300 px-4 py-2">Rango</th>
+                <th className="border border-gray-300 px-4 py-2">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {equipment.scheduledMaintenances.map((maintenance, index) => (
+                <tr key={index} className="text-gray-700 hover:bg-gray-100">
+                  <td className="border border-gray-300 px-4 py-2">{maintenance.description}</td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {maintenance.criteria?.name || 'No definido'}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {maintenance.criteria?.type === 'date'
+                      ? maintenance.criteria.currentValue
+                      : maintenance.criteria?.currentValue || 'No definido'}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {maintenance.criteria?.type === 'number'
+                      ? `Min: ${maintenance.criteria?.minValue || 'N/A'}, Max: ${
+                          maintenance.criteria?.maxValue || 'N/A'
+                        }`
+                      : '-'}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {calculateRemaining(maintenance.criteria)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="text-gray-500">No hay mantenimientos programados registrados.</p>
+        )}
+      </section>
     </div>
   );
 };

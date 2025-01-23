@@ -1,19 +1,24 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Component } from '../types';
+import { Component, Equipment } from '../types';
 import { calculateRemaining } from '../utils/calculateRemaining';
 
 interface ComponentDetailsProps {
   components: Component[];
+  equipments: Equipment[];
 }
 
-const ComponentDetails: React.FC<ComponentDetailsProps> = ({ components }) => {
+const ComponentDetails: React.FC<ComponentDetailsProps> = ({ components, equipments }) => {
   const { id } = useParams<{ id: string }>();
   const component = components.find((comp) => comp.id === Number(id));
 
   if (!component) {
     return <div className="p-8 text-center">Componente no encontrado.</div>;
   }
+
+  const relatedEquipment = equipments.find(
+    (equipment) => equipment.id === component.relatedEquipmentId
+  );
 
   return (
     <div className="p-8 max-w-6xl mx-auto bg-white shadow rounded">
@@ -122,6 +127,45 @@ const ComponentDetails: React.FC<ComponentDetailsProps> = ({ components }) => {
       ) : (
         <p className="text-gray-500 mt-4">No hay mantenimientos programados para este componente.</p>
       )}
+
+      {/* Equipo Relacionado */}
+      <h2 className="text-2xl font-bold mt-6">Equipo Relacionado</h2>
+      {relatedEquipment ? (
+        <table className="w-full table-auto border-collapse border border-gray-300 mt-4">
+          <thead>
+            <tr className="bg-gray-100 text-gray-700">
+              <th className="border border-gray-300 px-4 py-2">#</th>
+              <th className="border border-gray-300 px-4 py-2">Nombre</th>
+              <th className="border border-gray-300 px-4 py-2">Tipo</th>
+              <th className="border border-gray-300 px-4 py-2">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="text-gray-700 hover:bg-gray-100">
+              <td className="border border-gray-300 px-4 py-2 text-center">1</td>
+              <td className="border border-gray-300 px-4 py-2">{relatedEquipment.name}</td>
+              <td className="border border-gray-300 px-4 py-2">{relatedEquipment.type}</td>
+              <td className="border border-gray-300 px-4 py-2 text-center">
+                <Link
+                  to={`/equipment/${relatedEquipment.id}`}
+                  className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  Ver Equipo
+                </Link>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      ) : (
+        <p className="text-gray-500 mt-4">Este componente no está relacionado con ningún equipo.</p>
+      )}
+
+      <Link
+        to={`/link-component/${component.id}`}
+        className="mt-6 block px-4 py-2 bg-green-500 text-white text-center rounded hover:bg-green-600"
+      >
+        Ligar a un Equipo
+      </Link>
 
       <Link
         to={`/edit-component/${component.id}`}

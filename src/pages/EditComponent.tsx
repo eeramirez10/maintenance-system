@@ -68,43 +68,6 @@ const EditComponent: React.FC<EditComponentProps> = ({ components, onUpdate }) =
     setCustomFields(updatedFields);
   };
 
-  // Manejo de Mantenimientos Realizados
-  const handleAddMaintenance = () => {
-    setMaintenances([
-      ...maintenances,
-      {
-        description: '',
-        criteria: {
-          name: '',
-          type: 'number',
-          currentValue: 0,
-          minValue: undefined,
-          maxValue: undefined,
-        },
-      },
-    ]);
-  };
-
-  const handleMaintenanceChange = (
-    index: number,
-    field: keyof Maintenance['criteria'] | 'description',
-    value: string | number | undefined
-  ) => {
-    const updatedMaintenances = [...maintenances];
-    if (field === 'description') {
-      updatedMaintenances[index].description = value as string;
-    } else if (updatedMaintenances[index].criteria) {
-      updatedMaintenances[index].criteria![field] = value;
-    }
-    setMaintenances(updatedMaintenances);
-  };
-
-  const handleDeleteMaintenance = (index: number) => {
-    const updatedMaintenances = [...maintenances];
-    updatedMaintenances.splice(index, 1);
-    setMaintenances(updatedMaintenances);
-  };
-
   // Manejo de Mantenimientos Programados
   const handleAddScheduled = () => {
     setScheduledMaintenances([
@@ -113,7 +76,7 @@ const EditComponent: React.FC<EditComponentProps> = ({ components, onUpdate }) =
         description: '',
         criteria: {
           name: '',
-          type: 'number',
+          type: 'number', // Valor inicial predeterminado
           currentValue: 0,
           minValue: undefined,
           maxValue: undefined,
@@ -245,9 +208,99 @@ const EditComponent: React.FC<EditComponentProps> = ({ components, onUpdate }) =
         Agregar Campo
       </button>
 
-      {/* Mantenimientos Realizados */}
-      <h2 className="text-xl font-bold mt-6">Mantenimientos Realizados</h2>
-      {/* (Reutiliza la lógica mostrada anteriormente para manejar mantenimientos y mantenimientos programados) */}
+      {/* Mantenimientos Programados */}
+      <h2 className="text-xl font-bold mt-6">Mantenimientos Programados</h2>
+      <ul className="divide-y divide-gray-200 mt-4">
+        {scheduledMaintenances.map((scheduled, index) => (
+          <li key={index} className="py-4 flex flex-col gap-4">
+            <input
+              type="text"
+              placeholder="Descripción del Mantenimiento"
+              value={scheduled.description}
+              onChange={(e) =>
+                handleScheduledChange(index, 'description', e.target.value)
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded"
+            />
+            <select
+              value={scheduled.criteria.type}
+              onChange={(e) =>
+                handleScheduledChange(index, 'type', e.target.value as 'number' | 'date')
+              }
+              className="w-full px-4 py-2 border border-gray-300 rounded"
+            >
+              <option value="number">Numérico</option>
+              <option value="date">Fecha</option>
+            </select>
+            {scheduled.criteria.type === 'number' && (
+              <>
+                <input
+                  type="number"
+                  placeholder="Valor Actual"
+                  value={scheduled.criteria.currentValue || ''}
+                  onChange={(e) =>
+                    handleScheduledChange(
+                      index,
+                      'currentValue',
+                      Number(e.target.value) || undefined
+                    )
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 rounded"
+                />
+                <input
+                  type="number"
+                  placeholder="Valor Mínimo"
+                  value={scheduled.criteria.minValue || ''}
+                  onChange={(e) =>
+                    handleScheduledChange(
+                      index,
+                      'minValue',
+                      Number(e.target.value) || undefined
+                    )
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 rounded"
+                />
+                <input
+                  type="number"
+                  placeholder="Valor Máximo"
+                  value={scheduled.criteria.maxValue || ''}
+                  onChange={(e) =>
+                    handleScheduledChange(
+                      index,
+                      'maxValue',
+                      Number(e.target.value) || undefined
+                    )
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 rounded"
+                />
+              </>
+            )}
+            {scheduled.criteria.type === 'date' && (
+              <input
+                type="date"
+                placeholder="Fecha"
+                value={scheduled.criteria.currentValue?.toString() || ''}
+                onChange={(e) =>
+                  handleScheduledChange(index, 'currentValue', e.target.value)
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded"
+              />
+            )}
+            <button
+              onClick={() => handleDeleteScheduled(index)}
+              className="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            >
+              Eliminar
+            </button>
+          </li>
+        ))}
+      </ul>
+      <button
+        onClick={handleAddScheduled}
+        className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+      >
+        Agregar Mantenimiento Programado
+      </button>
 
       <button
         onClick={handleSave}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Equipment } from '../types';
 import { Link } from 'react-router-dom';
+import { Equipment } from '../types';
 
 interface EquipmentListProps {
   equipments: Equipment[];
@@ -9,7 +9,7 @@ interface EquipmentListProps {
 
 const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, onDelete }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Cambia esto para ajustar el número de equipos por página
+  const itemsPerPage = 5; // Número de equipos por página
 
   // Calcular datos para la paginación
   const totalPages = Math.ceil(equipments.length / itemsPerPage);
@@ -30,7 +30,16 @@ const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, onDelete }) =
 
   return (
     <div className="p-8 max-w-6xl mx-auto bg-white shadow rounded">
-      <h1 className="text-2xl font-bold mb-4">Lista de Equipos</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Lista de Equipos</h1>
+        <Link
+          to="/add-equipment"
+          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+        >
+          + Nuevo Equipo
+        </Link>
+      </div>
+
       <table className="w-full table-auto border-collapse border border-gray-300">
         <thead>
           <tr className="bg-gray-100 text-gray-700">
@@ -52,7 +61,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, onDelete }) =
                 <div className="flex justify-center space-x-2">
                   <Link
                     to={`/equipment/${equipment.id}`}
-                    className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                    className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                   >
                     Detalle
                   </Link>

@@ -28,6 +28,7 @@ export interface Equipment {
   customFields: CustomField[]; // Campos personalizados
   maintenances?: Maintenance[]; // Mantenimientos realizados
   scheduledMaintenances?: ScheduledMaintenance[]; // Mantenimientos programados
+  isActive: boolean
 }
 
 
@@ -40,18 +41,10 @@ export interface Component {
   maintenances?: Maintenance[];
   scheduledMaintenances?: ScheduledMaintenance[];
   relatedEquipmentId: number; // Relación con el equipo al que pertenece
+  isActive: boolean
 }
 
-export interface Component {
-  id: number;
-  name: string;
-  type: string;
-  image?: string;
-  customFields: CustomField[];
-  maintenances?: Maintenance[];
-  scheduledMaintenances?: ScheduledMaintenance[];
-  relatedEquipmentId: number; // Relación con el equipo
-}
+
 
 
 

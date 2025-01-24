@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Component } from '../types';
+import { Table, Button, Space, Modal, Badge } from 'antd';
+import { Equipment, Component } from '../types';
+// Importa QRCode de Ant Design si está disponible
+// Si no, usa qrcode.react
+// import { QRCode } from 'antd'; // Descomenta si Ant Design tiene QRCode
+import { QRCodeSVG as QRCode } from 'qrcode.react';
+// Usa qrcode.react si QRCode no está disponible en Ant Design
 
 interface ComponentListProps {
   components: Component[];
@@ -8,110 +14,126 @@ interface ComponentListProps {
 }
 
 const ComponentList: React.FC<ComponentListProps> = ({ components, onDelete }) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Número de componentes por página
+  // Estado para manejar el modal del QR
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedComponentId, setSelectedComponentId] = useState<number | null>(null);
 
-  // Calcular datos para la paginación
-  const totalPages = Math.ceil(components.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentComponents = components.slice(startIndex, startIndex + itemsPerPage);
-
-  const handlePrevious = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
+  // Funciones para manejar el modal
+  const showModal = (id: number) => {
+    setSelectedComponentId(id);
+    setIsModalVisible(true);
   };
 
-  const handleNext = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
+  const handleOk = () => {
+    setIsModalVisible(false);
+    setSelectedComponentId(null);
   };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+    setSelectedComponentId(null);
+  };
+
+  // Definición de las columnas para la tabla de Ant Design
+  const columns = [
+    {
+      title: '#',
+      key: 'index',
+      render: (_: any, __: any, index: number) => index + 1,
+      width: '5%',
+    },
+    {
+      title: 'Nombre',
+      dataIndex: 'name',
+      key: 'name',
+      width: '30%',
+    },
+    {
+      title: 'Tipo',
+      dataIndex: 'type',
+      key: 'type',
+      width: '25%',
+    },
+    {
+      title: 'Status',
+      key: 'isActive',
+      width: '20%',
+      render: (_: any, record: Equipment) => <Badge status={record.isActive ? 'success' : 'error'} text={record.isActive ? 'Activo' : 'Inactivo'} />,
+
+    },
+    {
+      title: 'Acciones',
+      key: 'actions',
+      render: (_: any, record: Component) => (
+        <Space size="middle">
+          <Link to={`/component/${record.id}`}>
+            <Button type="primary">Detalle</Button>
+          </Link>
+          {/* <Link to={`/edit-component/${record.id}`}>
+            <Button type="default" style={{ background: '#ffc107', color: '#fff' }}>
+              Editar
+            </Button>
+          </Link>
+          <Button
+            type="primary"
+            danger
+            onClick={() => onDelete(record.id)}
+          >
+            Eliminar
+          </Button> */}
+          <Button
+            type="default"
+            onClick={() => showModal(record.id)}
+          >
+            Generar QR
+          </Button>
+        </Space>
+      ),
+      width: '40%',
+    },
+  ];
 
   return (
     <div className="p-8 max-w-6xl mx-auto bg-white shadow rounded">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Lista de Componentes</h1>
-        <Link
-          to="/add-component"
-          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-        >
-          + Nuevo Componente
+        <Link to="/add-component">
+          <Button type="primary">+ Nuevo Componente</Button>
         </Link>
       </div>
 
-      <table className="w-full table-auto border-collapse border border-gray-300">
-        <thead>
-          <tr className="bg-gray-100 text-gray-700">
-            <th className="border border-gray-300 px-4 py-2">#</th>
-            <th className="border border-gray-300 px-4 py-2">Nombre</th>
-            <th className="border border-gray-300 px-4 py-2">Tipo</th>
-            <th className="border border-gray-300 px-4 py-2">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentComponents.map((component, index) => (
-            <tr key={component.id} className="text-gray-700 hover:bg-gray-100">
-              <td className="border border-gray-300 px-4 py-2 text-center">
-                {startIndex + index + 1}
-              </td>
-              <td className="border border-gray-300 px-4 py-2">{component.name}</td>
-              <td className="border border-gray-300 px-4 py-2">{component.type}</td>
-              <td className="border border-gray-300 px-4 py-2 text-center">
-                <div className="flex justify-center space-x-2">
-                  <Link
-                    to={`/component/${component.id}`}
-                    className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
-                    Detalle
-                  </Link>
-                  <Link
-                    to={`/edit-component/${component.id}`}
-                    className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-                  >
-                    Editar
-                  </Link>
-                  <button
-                    onClick={() => onDelete(component.id)}
-                    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* Tabla de Ant Design con paginación integrada */}
+      <Table
+        columns={columns}
+        dataSource={components}
+        rowKey="id"
+        pagination={{ pageSize: 5, showSizeChanger: false }}
+        bordered
+      />
 
-      {/* Controles de Paginación */}
-      <div className="mt-4 flex justify-between items-center">
-        <button
-          onClick={handlePrevious}
-          disabled={currentPage === 1}
-          className={`px-4 py-2 rounded ${
-            currentPage === 1
-              ? 'bg-gray-300 text-gray-500'
-              : 'bg-blue-500 text-white hover:bg-blue-600'
-          }`}
-        >
-          Anterior
-        </button>
-        <span className="text-gray-700">
-          Página {currentPage} de {totalPages}
-        </span>
-        <button
-          onClick={handleNext}
-          disabled={currentPage === totalPages}
-          className={`px-4 py-2 rounded ${
-            currentPage === totalPages
-              ? 'bg-gray-300 text-gray-500'
-              : 'bg-blue-500 text-white hover:bg-blue-600'
-          }`}
-        >
-          Siguiente
-        </button>
-      </div>
+      {/* Modal para mostrar el QR */}
+      <Modal
+        title="Código QR del Componente"
+        open={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        footer={[
+          <Button key="ok" type="primary" onClick={handleOk}>
+            OK
+          </Button>,
+        ]}
+      >
+        {selectedComponentId !== null ? (
+          <div className="flex justify-center">
+            {/* Usa el componente QRCode de Ant Design si está disponible */}
+            {/* <QRCode value={selectedComponentId.toString()} size={256} /> */}
+            {/* Alternativamente, usa qrcode.react */}
+            <QRCode value={selectedComponentId.toString()} size={256} />
+          </div>
+        ) : (
+          <p>No se pudo generar el código QR.</p>
+        )}
+      </Modal>
     </div>
   );
 };

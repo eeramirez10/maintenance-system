@@ -33,6 +33,7 @@ const mockComponents: Component[] = [
       },
     ],
     relatedEquipmentId: 1, // Relacionado con el equipo de ID 1
+    isActive: true, // Componente activo
   },
   {
     id: 2,
@@ -66,6 +67,7 @@ const mockComponents: Component[] = [
       },
     ],
     relatedEquipmentId: 1, // Relacionado con el equipo de ID 1
+    isActive: false, // Componente inactivo
   },
   {
     id: 3,
@@ -99,6 +101,7 @@ const mockComponents: Component[] = [
       },
     ],
     relatedEquipmentId: 2, // Relacionado con el equipo de ID 2
+    isActive: true, // Componente activo
   },
 ];
 

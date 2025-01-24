@@ -1,3 +1,4 @@
+// mockEquipments.ts
 import { Equipment } from '../types';
 
 const mockEquipments: Equipment[] = [
@@ -42,6 +43,7 @@ const mockEquipments: Equipment[] = [
         },
       },
     ],
+    isActive: true, // Equipo activo
   },
   {
     id: 2,
@@ -74,6 +76,7 @@ const mockEquipments: Equipment[] = [
         },
       },
     ],
+    isActive: false, // Equipo inactivo
   },
   {
     id: 3,
@@ -108,6 +111,7 @@ const mockEquipments: Equipment[] = [
         },
       },
     ],
+    isActive: true, // Equipo activo
   },
   {
     id: 4,
@@ -150,6 +154,7 @@ const mockEquipments: Equipment[] = [
         },
       },
     ],
+    isActive: true, // Equipo activo
   },
 ];
 

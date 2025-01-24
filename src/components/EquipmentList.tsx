@@ -1,117 +1,180 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Equipment } from '../types';
+import { Table, Button, Space, Modal, Badge } from 'antd';
+import { Equipment, Component } from '../types';
+
+import {QRCodeSVG as QRCode } from 'qrcode.react';
 
 interface EquipmentListProps {
   equipments: Equipment[];
+  components: Component[];
   onDelete: (id: number) => void;
 }
 
-const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, onDelete }) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Número de equipos por página
-
-  // Calcular datos para la paginación
-  const totalPages = Math.ceil(equipments.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentEquipments = equipments.slice(startIndex, startIndex + itemsPerPage);
-
-  const handlePrevious = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
+const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, components, onDelete }) => {
+  // Estado para manejar el modal del QR
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedEquipmentId, setSelectedEquipmentId] = useState<number | null>(null);
+ 
+  // Funciones para manejar el modal
+  const showModal = (id: number) => {
+    setSelectedEquipmentId(id);
+    setIsModalVisible(true);
   };
 
-  const handleNext = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
+  const handleOk = () => {
+    setIsModalVisible(false);
+    setSelectedEquipmentId(null);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+    setSelectedEquipmentId(null);
+  };
+
+  // Configuración de columnas para la tabla de Ant Design
+  const columns = [
+    {
+      title: '#',
+      dataIndex: 'index',
+      key: 'index',
+      render: (_: any, __: any, index: number) => index + 1, // Número de índice dinámico
+      width: '5%',
+    },
+    {
+      title: 'Nombre',
+      dataIndex: 'name',
+      key: 'name',
+      width: '25%',
+    },
+    {
+      title: 'Tipo',
+      dataIndex: 'type',
+      key: 'type',
+      width: '20%',
+    },
+    {
+      title: 'Status',
+      key: 'isActive',
+      width: '20%',
+
+      render: (_:any, record: Equipment) => <Badge status={ record.isActive ? 'success' : 'error'} text={ record.isActive ? 'Activo' : 'Inactivo'} />,
+    },
+    {
+      title: 'Acciones',
+      key: 'actions',
+      render: (_: any, record: Equipment) => (
+        <Space size="middle">
+          <Link to={`/equipment/${record.id}`}>
+            <Button type="primary">Detalle</Button>
+          </Link>
+          {/* <Link to={`/edit-equipment/${record.id}`}>
+            <Button type="default" style={{ background: '#ffc107', color: '#fff' }}>
+              Editar
+            </Button>
+          </Link>
+          <Button
+            type="primary"
+            danger
+            onClick={() => onDelete(record.id)}
+          >
+            Eliminar
+          </Button> */}
+          <Button
+            type="default"
+            onClick={() => showModal(record.id)}
+          >
+            Generar QR
+          </Button>
+        </Space>
+      ),
+      width: '50%',
+    },
+  ];
+
+  // Función para expandir filas y mostrar componentes relacionados
+  const expandedRowRender = (record: Equipment) => {
+    // Filtrar componentes relacionados con el equipo actual
+    const relatedComponents = components.filter(
+      (component) => component.relatedEquipmentId === record.id
+    );
+
+    return (
+      <Table
+        columns={[
+          {
+            title: 'Nombre del Componente',
+            dataIndex: 'name',
+            key: 'name',
+            width: '40%',
+          },
+          {
+            title: 'Tipo',
+            dataIndex: 'type',
+            key: 'type',
+            width: '30%',
+          },
+          {
+            title: 'Acciones',
+            key: 'actions',
+            render: (_: any, component: Component) => (
+              <Space size="middle">
+                <Link to={`/component/${component.id}`}>
+                  <Button type="default">Ver Componente</Button>
+                </Link>
+              </Space>
+            ),
+            width: '30%',
+          },
+        ]}
+        dataSource={relatedComponents}
+        rowKey="id"
+        pagination={false} // Sin paginación para la tabla interna
+      />
+    );
   };
 
   return (
     <div className="p-8 max-w-6xl mx-auto bg-white shadow rounded">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Lista de Equipos</h1>
-        <Link
-          to="/add-equipment"
-          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-        >
-          + Nuevo Equipo
+        <Link to="/add-equipment">
+          <Button type="primary">+ Nuevo Equipo</Button>
         </Link>
       </div>
+      {/* Tabla principal con filas expandibles */}
+      <Table
+        columns={columns}
+        dataSource={equipments}
+        rowKey="id"
+        expandable={{
+          expandedRowRender, // Filas expandibles
+          rowExpandable: (record) =>
+            components.some((component) => component.relatedEquipmentId === record.id), // Expandible solo si tiene componentes relacionados
+        }}
+        pagination={{ pageSize: 5 }} // Paginación de la tabla principal
+      />
 
-      <table className="w-full table-auto border-collapse border border-gray-300">
-        <thead>
-          <tr className="bg-gray-100 text-gray-700">
-            <th className="border border-gray-300 px-4 py-2">#</th>
-            <th className="border border-gray-300 px-4 py-2">Nombre</th>
-            <th className="border border-gray-300 px-4 py-2">Tipo</th>
-            <th className="border border-gray-300 px-4 py-2">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentEquipments.map((equipment, index) => (
-            <tr key={equipment.id} className="text-gray-700 hover:bg-gray-100">
-              <td className="border border-gray-300 px-4 py-2 text-center">
-                {startIndex + index + 1}
-              </td>
-              <td className="border border-gray-300 px-4 py-2">{equipment.name}</td>
-              <td className="border border-gray-300 px-4 py-2">{equipment.type}</td>
-              <td className="border border-gray-300 px-4 py-2 text-center">
-                <div className="flex justify-center space-x-2">
-                  <Link
-                    to={`/equipment/${equipment.id}`}
-                    className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  >
-                    Detalle
-                  </Link>
-                  <Link
-                    to={`/edit-equipment/${equipment.id}`}
-                    className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-                  >
-                    Editar
-                  </Link>
-                  <button
-                    onClick={() => onDelete(equipment.id)}
-                    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {/* Controles de Paginación */}
-      <div className="mt-4 flex justify-between items-center">
-        <button
-          onClick={handlePrevious}
-          disabled={currentPage === 1}
-          className={`px-4 py-2 rounded ${
-            currentPage === 1
-              ? 'bg-gray-300 text-gray-500'
-              : 'bg-blue-500 text-white hover:bg-blue-600'
-          }`}
-        >
-          Anterior
-        </button>
-        <span className="text-gray-700">
-          Página {currentPage} de {totalPages}
-        </span>
-        <button
-          onClick={handleNext}
-          disabled={currentPage === totalPages}
-          className={`px-4 py-2 rounded ${
-            currentPage === totalPages
-              ? 'bg-gray-300 text-gray-500'
-              : 'bg-blue-500 text-white hover:bg-blue-600'
-          }`}
-        >
-          Siguiente
-        </button>
-      </div>
+      {/* Modal para mostrar el QR */}
+      <Modal
+        title="Código QR del Equipo"
+        open={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        footer={[
+          <Button key="ok" type="primary" onClick={handleOk}>
+            OK
+          </Button>,
+        ]}
+      >
+        {selectedEquipmentId !== null ? (
+          <div className="flex justify-center">
+            <QRCode value={selectedEquipmentId.toString()} size={256} />
+          </div>
+        ) : (
+          <p>No se pudo generar el código QR.</p>
+        )}
+      </Modal>
     </div>
   );
 };

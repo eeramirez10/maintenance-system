@@ -75,13 +75,21 @@ const App: React.FC = () => {
     );
   };
 
+  const handleDeleteEquipment = (id: number) => {
+    // Lógica para eliminar el equipo
+    setEquipments(equipments.filter(equipment => equipment.id !== id));
+    
+    // Opcional: también eliminar componentes relacionados
+    setComponents(components.filter(component => component.relatedEquipmentId !== id));
+  };
+
   return (
     <Router>
       <Navbar />
       <Routes>
         <Route
           path="/equipments"
-          element={<Home equipments={equipments} onDelete={handleDelete} />}
+          element={<Home equipments={equipments} components={components} onDelete={handleDelete} />}
         />
         <Route
           path="/add-equipment"
@@ -89,7 +97,7 @@ const App: React.FC = () => {
         />
         <Route
           path="/equipment/:id"
-          element={<EquipmentDetails equipments={equipments} components={components} onLinkComponent={handleLinkComponent} />}
+          element={<EquipmentDetails equipments={equipments} components={components} onDeleteEquipment={handleDeleteEquipment }  />}
         />
         <Route
           path="/edit-equipment/:id"
@@ -103,7 +111,7 @@ const App: React.FC = () => {
 
         <Route
           path="/add-component"
-          element={<AddComponent onAdd={handleAddComponent} />}
+          element={<AddComponent onAdd={handleAddComponent} equipments={equipments} />}
         />
 
         <Route

@@ -1,15 +1,17 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Equipment, Component } from '../types';
 import { calculateRemaining } from '../utils/calculateRemaining';
 
 interface EquipmentDetailsProps {
   equipments: Equipment[];
   components: Component[];
+  onDeleteEquipment: (id: number) => void; // Agregada la prop onDeleteEquipment
 }
 
-const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipments, components }) => {
+const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipments, components, onDeleteEquipment }) => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const equipment = equipments.find((eq) => eq.id === Number(id));
 
   if (!equipment) {
@@ -21,21 +23,48 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipments, compone
     (component) => component.relatedEquipmentId === equipment.id
   );
 
+  // Manejar la eliminación del equipo con confirmación
+  const handleDeleteEquipment = () => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar este equipo?')) {
+      onDeleteEquipment(equipment.id);
+      navigate('/equipments'); // Redirige a la página principal después de eliminar
+    }
+  };
+
   return (
     <div className="p-8 max-w-6xl mx-auto bg-white shadow rounded">
-      <h1 className="text-3xl font-bold mb-4">{equipment.name}</h1>
-      <p className="text-gray-700 text-lg mb-4">Tipo: {equipment.type}</p>
+      {/* Encabezado con Nombre del Equipo y Botones de Acción */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">{equipment.name}</h1>
+          <p className="text-gray-700 text-lg">Tipo: {equipment.type}</p>
+        </div>
+        <div className="flex space-x-2">
+          <Link to={`/edit-equipment/${equipment.id}`}>
+            <button className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+              Editar Equipo
+            </button>
+          </Link>
+          <button
+            onClick={handleDeleteEquipment}
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+          >
+            Eliminar Equipo
+          </button>
+        </div>
+      </div>
+
       {equipment.image && (
         <img
           src={equipment.image}
           alt={equipment.name}
-          className="w-full h-64 object-cover rounded mb-4"
+          className="w-full h-64 object-cover rounded mb-6"
         />
       )}
 
       {/* Campos Personalizados */}
       <section>
-        <h2 className="text-2xl font-bold mt-6 mb-4">Campos Personalizados</h2>
+        <h2 className="text-2xl font-bold mb-4">Campos Personalizados</h2>
         {equipment.customFields.length > 0 ? (
           <ul className="list-disc ml-6 text-gray-700 mb-6">
             {equipment.customFields.map((field, index) => (
@@ -45,13 +74,13 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipments, compone
             ))}
           </ul>
         ) : (
-          <p className="text-gray-500">No hay campos personalizados registrados.</p>
+          <p className="text-gray-500 mb-6">No hay campos personalizados registrados.</p>
         )}
       </section>
 
       {/* Componentes Relacionados */}
       <section>
-        <h2 className="text-2xl font-bold mt-6 mb-4">Componentes Relacionados</h2>
+        <h2 className="text-2xl font-bold mb-4">Componentes Relacionados</h2>
         {relatedComponents.length > 0 ? (
           <table className="w-full table-auto border-collapse border border-gray-300 mb-4">
             <thead>
@@ -67,11 +96,10 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipments, compone
                   <td className="border border-gray-300 px-4 py-2">{component.name}</td>
                   <td className="border border-gray-300 px-4 py-2">{component.type}</td>
                   <td className="border border-gray-300 px-4 py-2 text-center">
-                    <Link
-                      to={`/component/${component.id}`}
-                      className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                    >
-                      Ver Componente
+                    <Link to={`/component/${component.id}`}>
+                      <button className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                        Ver Componente
+                      </button>
                     </Link>
                   </td>
                 </tr>
@@ -79,21 +107,15 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipments, compone
             </tbody>
           </table>
         ) : (
-          <p className="text-gray-500">No hay componentes relacionados.</p>
+          <p className="text-gray-500 mb-4">No hay componentes relacionados.</p>
         )}
-        <Link
-          to={`/link-components/${equipment.id}`}
-          className="block mt-4 px-4 py-2 bg-green-500 text-white text-center rounded hover:bg-green-600"
-        >
-          Ligar Componentes
-        </Link>
       </section>
 
       {/* Mantenimientos Realizados */}
       <section>
-        <h2 className="text-2xl font-bold mt-6 mb-4">Mantenimientos Realizados</h2>
+        <h2 className="text-2xl font-bold mb-4">Mantenimientos Realizados</h2>
         {equipment.maintenances?.length > 0 ? (
-          <table className="w-full table-auto border-collapse border border-gray-300 mb-4">
+          <table className="w-full table-auto border-collapse border border-gray-300 mb-6">
             <thead>
               <tr className="bg-gray-100 text-gray-700">
                 <th className="border border-gray-300 px-4 py-2">Descripción</th>
@@ -118,15 +140,15 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipments, compone
             </tbody>
           </table>
         ) : (
-          <p className="text-gray-500">No hay mantenimientos registrados.</p>
+          <p className="text-gray-500 mb-6">No hay mantenimientos registrados.</p>
         )}
       </section>
 
       {/* Mantenimientos Programados */}
       <section>
-        <h2 className="text-2xl font-bold mt-6 mb-4">Mantenimientos Programados</h2>
+        <h2 className="text-2xl font-bold mb-4">Mantenimientos Programados</h2>
         {equipment.scheduledMaintenances?.length > 0 ? (
-          <table className="w-full table-auto border-collapse border border-gray-300">
+          <table className="w-full table-auto border-collapse border border-gray-300 mb-6">
             <thead>
               <tr className="bg-gray-100 text-gray-700">
                 <th className="border border-gray-300 px-4 py-2">Descripción</th>
@@ -163,7 +185,7 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipments, compone
             </tbody>
           </table>
         ) : (
-          <p className="text-gray-500">No hay mantenimientos programados registrados.</p>
+          <p className="text-gray-500 mb-6">No hay mantenimientos programados registrados.</p>
         )}
       </section>
     </div>

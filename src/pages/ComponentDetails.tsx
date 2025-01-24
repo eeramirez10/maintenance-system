@@ -160,12 +160,12 @@ const ComponentDetails: React.FC<ComponentDetailsProps> = ({ components, equipme
         <p className="text-gray-500 mt-4">Este componente no está relacionado con ningún equipo.</p>
       )}
 
-      <Link
+      {/* <Link
         to={`/link-component/${component.id}`}
         className="mt-6 block px-4 py-2 bg-green-500 text-white text-center rounded hover:bg-green-600"
       >
         Ligar a un Equipo
-      </Link>
+      </Link> */}
 
       <Link
         to={`/edit-component/${component.id}`}

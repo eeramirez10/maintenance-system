@@ -1,36 +1,137 @@
-import React, { useState } from 'react';
+// EquipmentList.tsx
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Table, Button, Space, Modal, Badge } from 'antd';
-import { Equipment, Component } from '../types';
+import {
+  Table,
+  Button,
+  Space,
+  Modal,
+  Badge,
+  Input,
+  message,
+} from 'antd';
+import { SearchOutlined, PlusOutlined } from '@ant-design/icons';
+import { Equipment, Component, ScheduledMaintenance } from '../types';
+import { QRCodeSVG as QRCode } from 'qrcode.react';
+import ScheduledMaintenanceForm2 from './ScheduledMaintenanceForm2';
+import { useEquipments } from '../hooks/useEquipments';
 
-import {QRCodeSVG as QRCode } from 'qrcode.react';
+
 
 interface EquipmentListProps {
-  equipments: Equipment[];
   components: Component[];
-  onDelete: (id: number) => void;
+  onDelete: (id: number) => void; // Actualizado para recibir un array
 }
 
-const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, components, onDelete }) => {
+const EquipmentList: React.FC<EquipmentListProps> = ({
+  components,
+  onDelete,
+}) => {
   // Estado para manejar el modal del QR
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedEquipmentId, setSelectedEquipmentId] = useState<number | null>(null);
+  const [isQRModalVisible, setIsQRModalVisible] = useState(false);
+  const [selectedEquipmentIdForQR, setSelectedEquipmentIdForQR] = useState<number | null>(null);
+
+  // Estado para manejar el modal de Agregar Mantenimiento Programado
+  const [isAddMaintenanceModalVisible, setIsAddMaintenanceModalVisible] = useState(false);
+  const [selectedEquipmentIdForMaintenance, setSelectedEquipmentIdForMaintenance] = useState<number | null>(null);
+
+  // Estado para el buscador
+  const [searchText, setSearchText] = useState<string>('');
+
+
+  const {
+    sheduleMaintenance,
+    scheduledMaintenances,
+    equipments,
+    handleDeleteScheduled,
+    handleAddScheduled,
+    handleScheduledChange,
+    handleResetValues, onAddScheduledMaintenance } = useEquipments()
+
+
+    console.log(equipments)
+
+  // Funciones para manejar el modal del QR
+  const showQRModal = (id: number) => {
+    setSelectedEquipmentIdForQR(id);
+    setIsQRModalVisible(true);
+  };
+
+  const handleQROk = () => {
+    setIsQRModalVisible(false);
+    setSelectedEquipmentIdForQR(null);
+  };
+
+  const handleQRCancel = () => {
+    setIsQRModalVisible(false);
+    setSelectedEquipmentIdForQR(null);
+  };
+
+  // Funciones para manejar el modal de Agregar Mantenimiento Programado
+  const showAddMaintenanceModal = (id: number) => {
+    setSelectedEquipmentIdForMaintenance(id);
+    setIsAddMaintenanceModalVisible(true);
+    handleResetValues() // Resetear mantenimientos al abrir el modal
+  };
+
+  const handleAddMaintenanceOk = () => {
  
-  // Funciones para manejar el modal
-  const showModal = (id: number) => {
-    setSelectedEquipmentId(id);
-    setIsModalVisible(true);
+    const maintenance = sheduleMaintenance
+    if (!maintenance.description) {
+      message.error(`Por favor ingresa una descripción para el mantenimiento `);
+      return;
+    }
+    if (!maintenance.criteria?.type) {
+      message.error(`Por favor selecciona el tipo de criterio para el mantenimiento `);
+      return;
+    }
+    if (maintenance.criteria.type === 'date') {
+      if (!maintenance.criteria.currentValue) {
+        message.error(`Por favor ingresa la fecha de inspección para el mantenimiento `);
+        return;
+      }
+    }
+    if (maintenance.criteria.type === 'number') {
+      if (
+        maintenance.criteria.currentValue === undefined ||
+        maintenance.criteria.minValue === undefined ||
+        maintenance.criteria.maxValue === undefined
+      ) {
+        message.error(`Por favor ingresa todos los valores numéricos para el mantenimiento `);
+        return;
+      }
+      if (maintenance.criteria.maxValue <= maintenance.criteria.currentValue) {
+        message.error(`El valor máximo debe ser mayor que el valor actual para el mantenimiento `);
+        return;
+      }
+    }
+
+
+    if (selectedEquipmentIdForMaintenance !== null) {
+      onAddScheduledMaintenance(selectedEquipmentIdForMaintenance, sheduleMaintenance);
+      message.success('Mantenimientos programados agregados exitosamente');
+    }
+    setIsAddMaintenanceModalVisible(false);
+    setSelectedEquipmentIdForMaintenance(null);
+    handleResetValues(); // Resetear mantenimientos después de agregar
   };
 
-  const handleOk = () => {
-    setIsModalVisible(false);
-    setSelectedEquipmentId(null);
+  const handleAddMaintenanceCancel = () => {
+    setIsAddMaintenanceModalVisible(false);
+    setSelectedEquipmentIdForMaintenance(null);
+    handleResetValues();
   };
 
-  const handleCancel = () => {
-    setIsModalVisible(false);
-    setSelectedEquipmentId(null);
-  };
+
+
+
+
+  // Filtrar equipos basados en el texto de búsqueda
+  const filteredEquipments = useMemo(() => {
+    return equipments.filter((equipment) =>
+      equipment.name.toLowerCase().includes(searchText.toLowerCase())
+    );
+  }, [equipments, searchText]);
 
   // Configuración de columnas para la tabla de Ant Design
   const columns = [
@@ -45,20 +146,33 @@ const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, components, o
       title: 'Nombre',
       dataIndex: 'name',
       key: 'name',
-      width: '25%',
+      width: '20%',
+      sorter: (a: Equipment, b: Equipment) => a.name.localeCompare(b.name),
+      sortDirections: ['ascend', 'descend'],
     },
     {
       title: 'Tipo',
       dataIndex: 'type',
       key: 'type',
-      width: '20%',
+      width: '15%',
+      sorter: (a: Equipment, b: Equipment) => a.type.localeCompare(b.type),
+      sortDirections: ['ascend', 'descend'],
     },
     {
       title: 'Status',
       key: 'isActive',
-      width: '20%',
-
-      render: (_:any, record: Equipment) => <Badge status={ record.isActive ? 'success' : 'error'} text={ record.isActive ? 'Activo' : 'Inactivo'} />,
+      width: '15%',
+      render: (_: any, record: Equipment) => (
+        <Badge
+          status={record.isActive ? 'success' : 'error'}
+          text={record.isActive ? 'Activo' : 'Inactivo'}
+        />
+      ),
+      filters: [
+        { text: 'Activo', value: true },
+        { text: 'Inactivo', value: false },
+      ],
+      onFilter: (value: boolean, record: Equipment) => record.isActive === value,
     },
     {
       title: 'Acciones',
@@ -68,7 +182,9 @@ const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, components, o
           <Link to={`/equipment/${record.id}`}>
             <Button type="primary">Detalle</Button>
           </Link>
-          {/* <Link to={`/edit-equipment/${record.id}`}>
+          {/* Botones comentados: Editar y Eliminar */}
+          {/*
+          <Link to={`/edit-equipment/${record.id}`}>
             <Button type="default" style={{ background: '#ffc107', color: '#fff' }}>
               Editar
             </Button>
@@ -79,16 +195,24 @@ const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, components, o
             onClick={() => onDelete(record.id)}
           >
             Eliminar
-          </Button> */}
+          </Button>
+          */}
           <Button
             type="default"
-            onClick={() => showModal(record.id)}
+            onClick={() => showQRModal(record.id)}
           >
             Generar QR
           </Button>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => showAddMaintenanceModal(record.id)}
+          >
+            Agregar Mtto Prog
+          </Button>
         </Space>
       ),
-      width: '50%',
+      width: '45%',
     },
   ];
 
@@ -136,16 +260,28 @@ const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, components, o
 
   return (
     <div className="p-8 max-w-6xl mx-auto bg-white shadow rounded">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Lista de Equipos</h1>
-        <Link to="/add-equipment">
-          <Button type="primary">+ Nuevo Equipo</Button>
-        </Link>
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold mb-4 md:mb-0">Lista de Equipos</h1>
+        <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
+          <Input
+            placeholder="Buscar Equipos"
+            prefix={<SearchOutlined />}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            allowClear
+            className="w-full md:w-64"
+          />
+          <Link to="/add-equipment">
+            <Button type="primary" icon={<PlusOutlined />}>
+              + Nuevo Equipo
+            </Button>
+          </Link>
+        </div>
       </div>
       {/* Tabla principal con filas expandibles */}
       <Table
         columns={columns}
-        dataSource={equipments}
+        dataSource={filteredEquipments}
         rowKey="id"
         expandable={{
           expandedRowRender, // Filas expandibles
@@ -153,27 +289,48 @@ const EquipmentList: React.FC<EquipmentListProps> = ({ equipments, components, o
             components.some((component) => component.relatedEquipmentId === record.id), // Expandible solo si tiene componentes relacionados
         }}
         pagination={{ pageSize: 5 }} // Paginación de la tabla principal
+        bordered
+        locale={{
+          emptyText: searchText
+            ? 'No se encontraron equipos que coincidan con la búsqueda.'
+            : 'No hay equipos disponibles.',
+        }}
       />
 
       {/* Modal para mostrar el QR */}
       <Modal
         title="Código QR del Equipo"
-        open={isModalVisible}
-        onOk={handleOk}
-        onCancel={handleCancel}
+        visible={isQRModalVisible}
+        onOk={handleQROk}
+        onCancel={handleQRCancel}
         footer={[
-          <Button key="ok" type="primary" onClick={handleOk}>
+          <Button key="ok" type="primary" onClick={handleQROk}>
             OK
           </Button>,
         ]}
       >
-        {selectedEquipmentId !== null ? (
+        {selectedEquipmentIdForQR !== null ? (
           <div className="flex justify-center">
-            <QRCode value={selectedEquipmentId.toString()} size={256} />
+            <QRCode value={selectedEquipmentIdForQR.toString()} size={256} />
           </div>
         ) : (
           <p>No se pudo generar el código QR.</p>
         )}
+      </Modal>
+
+      {/* Modal para Agregar Mantenimiento Programado */}
+      <Modal
+        title="Agregar Mantenimiento Programado"
+        open={isAddMaintenanceModalVisible}
+        onOk={handleAddMaintenanceOk}
+        onCancel={handleAddMaintenanceCancel}
+        okText="Agregar"
+        cancelText="Cancelar"
+        width={800}
+      >
+        <h2 className="text-xl font-bold mt-6">Mantenimientos Programados</h2>
+
+        <ScheduledMaintenanceForm2 handleScheduledChange={handleScheduledChange} maintenance={sheduleMaintenance} />
       </Modal>
     </div>
   );

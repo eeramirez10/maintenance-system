@@ -1,6 +1,9 @@
+// EditComponent.tsx
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Component, CustomField, Maintenance, ScheduledMaintenance } from '../types';
+import ScheduledMaintenanceItem from '../components/ScheduledMaintenanceForm';
+
 
 interface EditComponentProps {
   components: Component[];
@@ -69,6 +72,36 @@ const EditComponent: React.FC<EditComponentProps> = ({ components, onUpdate }) =
   };
 
   // Manejo de Mantenimientos Programados
+  const handleScheduledChange = (
+    index: number,
+    field: keyof ScheduledMaintenance['criteria'] | 'description',
+    value: string | number | undefined
+  ) => {
+    const updatedScheduled = [...scheduledMaintenances];
+    if (field === 'description') {
+      updatedScheduled[index].description = value as string;
+    } else {
+      // Asegurarse de que 'criteria' exista
+      if (!updatedScheduled[index].criteria) {
+        updatedScheduled[index].criteria = {
+          name: '',
+          type: 'number',
+          currentValue: 0,
+        };
+      }
+      if (
+        field === 'name' ||
+        field === 'type' ||
+        field === 'currentValue' ||
+        field === 'minValue' ||
+        field === 'maxValue'
+      ) {
+        (updatedScheduled[index].criteria as any)[field] = value;
+      }
+    }
+    setScheduledMaintenances(updatedScheduled);
+  };
+
   const handleAddScheduled = () => {
     setScheduledMaintenances([
       ...scheduledMaintenances,
@@ -85,20 +118,6 @@ const EditComponent: React.FC<EditComponentProps> = ({ components, onUpdate }) =
     ]);
   };
 
-  const handleScheduledChange = (
-    index: number,
-    field: keyof ScheduledMaintenance['criteria'] | 'description',
-    value: string | number | undefined
-  ) => {
-    const updatedScheduled = [...scheduledMaintenances];
-    if (field === 'description') {
-      updatedScheduled[index].description = value as string;
-    } else if (updatedScheduled[index].criteria) {
-      updatedScheduled[index].criteria![field] = value;
-    }
-    setScheduledMaintenances(updatedScheduled);
-  };
-
   const handleDeleteScheduled = (index: number) => {
     const updatedScheduled = [...scheduledMaintenances];
     updatedScheduled.splice(index, 1);
@@ -107,6 +126,7 @@ const EditComponent: React.FC<EditComponentProps> = ({ components, onUpdate }) =
 
   // Guardar Cambios
   const handleSave = () => {
+    // Validaciones básicas
     if (!name.trim()) {
       setErrorMessage('El nombre del componente es obligatorio.');
       return;
@@ -114,6 +134,43 @@ const EditComponent: React.FC<EditComponentProps> = ({ components, onUpdate }) =
     if (!type.trim()) {
       setErrorMessage('El tipo de componente es obligatorio.');
       return;
+    }
+
+    // Validaciones para Mantenimientos Programados
+    for (let i = 0; i < scheduledMaintenances.length; i++) {
+      const maintenance = scheduledMaintenances[i];
+      if (!maintenance.description.trim()) {
+        setErrorMessage(`La descripción del mantenimiento #${i + 1} es obligatoria.`);
+        return;
+      }
+      if (!maintenance.criteria?.name.trim()) {
+        setErrorMessage(`El nombre del criterio del mantenimiento #${i + 1} es obligatorio.`);
+        return;
+      }
+      if (!maintenance.criteria?.type) {
+        setErrorMessage(`El tipo de criterio del mantenimiento #${i + 1} es obligatorio.`);
+        return;
+      }
+      if (maintenance.criteria.type === 'date') {
+        if (!maintenance.criteria.currentValue) {
+          setErrorMessage(`La fecha de inspección del mantenimiento #${i + 1} es obligatoria.`);
+          return;
+        }
+      }
+      if (maintenance.criteria.type === 'number') {
+        if (
+          maintenance.criteria.currentValue === undefined ||
+          maintenance.criteria.minValue === undefined ||
+          maintenance.criteria.maxValue === undefined
+        ) {
+          setErrorMessage(`Todos los valores numéricos del mantenimiento #${i + 1} son obligatorios.`);
+          return;
+        }
+        if (maintenance.criteria.maxValue <= maintenance.criteria.currentValue) {
+          setErrorMessage(`El valor máximo debe ser mayor que el valor actual en el mantenimiento #${i + 1}.`);
+          return;
+        }
+      }
     }
 
     const updatedComponent: Component = {
@@ -211,88 +268,14 @@ const EditComponent: React.FC<EditComponentProps> = ({ components, onUpdate }) =
       {/* Mantenimientos Programados */}
       <h2 className="text-xl font-bold mt-6">Mantenimientos Programados</h2>
       <ul className="divide-y divide-gray-200 mt-4">
-        {scheduledMaintenances.map((scheduled, index) => (
-          <li key={index} className="py-4 flex flex-col gap-4">
-            <input
-              type="text"
-              placeholder="Descripción del Mantenimiento"
-              value={scheduled.description}
-              onChange={(e) =>
-                handleScheduledChange(index, 'description', e.target.value)
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded"
-            />
-            <select
-              value={scheduled.criteria.type}
-              onChange={(e) =>
-                handleScheduledChange(index, 'type', e.target.value as 'number' | 'date')
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded"
-            >
-              <option value="number">Numérico</option>
-              <option value="date">Fecha</option>
-            </select>
-            {scheduled.criteria.type === 'number' && (
-              <>
-                <input
-                  type="number"
-                  placeholder="Valor Actual"
-                  value={scheduled.criteria.currentValue || ''}
-                  onChange={(e) =>
-                    handleScheduledChange(
-                      index,
-                      'currentValue',
-                      Number(e.target.value) || undefined
-                    )
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded"
-                />
-                <input
-                  type="number"
-                  placeholder="Valor Mínimo"
-                  value={scheduled.criteria.minValue || ''}
-                  onChange={(e) =>
-                    handleScheduledChange(
-                      index,
-                      'minValue',
-                      Number(e.target.value) || undefined
-                    )
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded"
-                />
-                <input
-                  type="number"
-                  placeholder="Valor Máximo"
-                  value={scheduled.criteria.maxValue || ''}
-                  onChange={(e) =>
-                    handleScheduledChange(
-                      index,
-                      'maxValue',
-                      Number(e.target.value) || undefined
-                    )
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded"
-                />
-              </>
-            )}
-            {scheduled.criteria.type === 'date' && (
-              <input
-                type="date"
-                placeholder="Fecha"
-                value={scheduled.criteria.currentValue?.toString() || ''}
-                onChange={(e) =>
-                  handleScheduledChange(index, 'currentValue', e.target.value)
-                }
-                className="w-full px-4 py-2 border border-gray-300 rounded"
-              />
-            )}
-            <button
-              onClick={() => handleDeleteScheduled(index)}
-              className="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-            >
-              Eliminar
-            </button>
-          </li>
+        {scheduledMaintenances.map((maintenance, index) => (
+          <ScheduledMaintenanceItem
+            key={index}
+            maintenance={maintenance}
+            index={index}
+            handleChange={handleScheduledChange}
+            handleDelete={handleDeleteScheduled}
+          />
         ))}
       </ul>
       <button

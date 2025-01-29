@@ -2,16 +2,18 @@ import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Equipment, Component } from '../types';
 import { calculateRemaining } from '../utils/calculateRemaining';
+import { useEquipments } from '../hooks/useEquipments';
 
 interface EquipmentDetailsProps {
-  equipments: Equipment[];
   components: Component[];
   onDeleteEquipment: (id: number) => void; // Agregada la prop onDeleteEquipment
 }
 
-const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ equipments, components, onDeleteEquipment }) => {
+const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({  components, onDeleteEquipment }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+
+  const { equipments} = useEquipments()
   const equipment = equipments.find((eq) => eq.id === Number(id));
 
   if (!equipment) {

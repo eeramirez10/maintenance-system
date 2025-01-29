@@ -7,7 +7,7 @@ export interface CustomField {
 
 export interface Maintenance {
   description: string; // Descripción del mantenimiento
-  criteria?: {
+  criteria: {
     name: string; // Nombre del criterio (e.g., "Kilómetros recorridos")
     type: 'number' | 'date'; // Tipo de criterio
     currentValue: number | string; // Valor actual (puede ser número o fecha)

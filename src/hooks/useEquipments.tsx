@@ -1,8 +1,9 @@
 
 
-import  { useState } from 'react'
+import { useContext, useState } from 'react'
 import { Equipment, ScheduledMaintenance } from '../types';
-import mockEquipments from '../mocks/equipments';
+
+import EquipmentContext from '../context/EquipmentContext'
 
 const sheduledMaintenanceinitialState: ScheduledMaintenance = {
   description: '',
@@ -18,23 +19,26 @@ const sheduledMaintenanceinitialState: ScheduledMaintenance = {
 interface Props {
   equipments: Equipment[]
   sheduleMaintenance: ScheduledMaintenance,
-  scheduledMaintenances : ScheduledMaintenance[],
+  scheduledMaintenances: ScheduledMaintenance[],
   handleDeleteScheduled: (index: number) => void,
   handleAddScheduled: () => void,
   handleScheduledChange: (field: keyof ScheduledMaintenance['criteria'] | 'description', value: string | number) => void
   handleResetValues: () => void,
-  onAddScheduledMaintenance:  (equipmentId: number, sheduleMaintenance: ScheduledMaintenance) => void;
+  onAddScheduledMaintenance: (equipmentId: number, sheduleMaintenance: ScheduledMaintenance) => void;
+  deleteEquipment: (equipmentId: number) => void
+  handleAddEquipment: (equipment: Omit<Equipment, 'id'>) => void
 }
 
 
 export const useEquipments = (): Props => {
 
-   // Estado para mantener los mantenimientos programados en el formulario
-   const [scheduledMaintenances, setScheduledMaintenances] = useState<ScheduledMaintenance[]>([]);
+  const { equipments, setEquipments } = useContext(EquipmentContext)
 
-   const [sheduleMaintenance, setSheduleMaintenance] = useState(sheduledMaintenanceinitialState)
+  // Estado para mantener los mantenimientos programados en el formulario
+  const [scheduledMaintenances, setScheduledMaintenances] = useState<ScheduledMaintenance[]>([]);
 
-   const [equipments, setEquipments] = useState<Equipment[]>(mockEquipments);
+  const [sheduleMaintenance, setSheduleMaintenance] = useState(sheduledMaintenanceinitialState)
+
 
   const handleDeleteScheduled = (index: number) => {
     const updatedMaintenances = [...scheduledMaintenances];
@@ -59,14 +63,14 @@ export const useEquipments = (): Props => {
   };
 
   const onAddScheduledMaintenance = (equipmentId: number, sheduleMaintenance: ScheduledMaintenance) => {
-    const equipment = equipments.find( (equipment) => equipment.id === equipmentId)
+    const equipment = equipments.find((equipment) => equipment.id === equipmentId)
     console.log(sheduleMaintenance)
 
-    const selectedEquipment = { ...equipment}
+    const selectedEquipment = { ...equipment }
 
     selectedEquipment.scheduledMaintenances = [...selectedEquipment.scheduledMaintenances ?? [], sheduleMaintenance]
 
-    setEquipments(prev => prev.map( (equipment) => (equipment.id === equipmentId ? selectedEquipment  : equipment) ))
+    setEquipments(prev => prev.map((equipment) => (equipment.id === equipmentId ? selectedEquipment : equipment)))
   }
 
 
@@ -92,9 +96,26 @@ export const useEquipments = (): Props => {
     setSheduleMaintenance(updatedScheduled);
   }
 
-  const handleResetValues =  () => {
-    setSheduleMaintenance(sheduledMaintenanceinitialState)
+  const handleResetValues = () => {
+    setSheduleMaintenance({
+      description: '',
+      criteria: {
+        name: '',
+        type: 'date',
+        currentValue: 0,
+        minValue: 0,
+        maxValue: 0,
+      },
+    })
   }
+
+  const deleteEquipment = (equipmentId: number) => {
+    setEquipments(equipments.filter(equipment => equipment.id !== equipmentId))
+  };
+
+  const handleAddEquipment = (equipment: Omit<Equipment, 'id'>) => {
+    setEquipments([...equipments, { id: Date.now(), ...equipment }]);
+  };
 
   return {
     sheduleMaintenance,
@@ -104,6 +125,8 @@ export const useEquipments = (): Props => {
     handleAddScheduled,
     handleScheduledChange,
     handleResetValues,
-    onAddScheduledMaintenance
+    onAddScheduledMaintenance,
+    deleteEquipment,
+    handleAddEquipment
   }
 }

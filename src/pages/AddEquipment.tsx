@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Equipment, CustomField, Maintenance, ScheduledMaintenance } from '../types';
+import { useEquipments } from '../hooks/useEquipments';
 
-interface AddEquipmentProps {
-  onAdd: (newEquipment: Equipment) => void;
-}
 
-const AddEquipment: React.FC<AddEquipmentProps> = ({ onAdd }) => {
+
+const AddEquipment = () => {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [type, setType] = useState('');
@@ -15,6 +14,8 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onAdd }) => {
   const [maintenances, setMaintenances] = useState<Maintenance[]>([]);
   const [scheduledMaintenances, setScheduledMaintenances] = useState<ScheduledMaintenance[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const { handleAddEquipment } =  useEquipments()
 
   // Manejo de Imagen
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -155,7 +156,7 @@ const AddEquipment: React.FC<AddEquipmentProps> = ({ onAdd }) => {
       maintenances,
       scheduledMaintenances,
     };
-    onAdd(newEquipment);
+    handleAddEquipment(newEquipment);
     navigate('/');
   };
 

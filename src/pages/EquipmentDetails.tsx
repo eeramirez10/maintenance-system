@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Equipment, Component } from '../types';
+import { Component } from '../types';
 import { calculateRemaining } from '../utils/calculateRemaining';
 import { useEquipments } from '../hooks/useEquipments';
 
@@ -36,25 +36,6 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({  components, onDele
   return (
     <div className="p-8 max-w-6xl mx-auto bg-white shadow rounded">
       {/* Encabezado con Nombre del Equipo y Botones de Acción */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">{equipment.name}</h1>
-          <p className="text-gray-700 text-lg">Tipo: {equipment.type}</p>
-        </div>
-        <div className="flex space-x-2">
-          <Link to={`/edit-equipment/${equipment.id}`}>
-            <button className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">
-              Editar Equipo
-            </button>
-          </Link>
-          <button
-            onClick={handleDeleteEquipment}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-          >
-            Eliminar Equipo
-          </button>
-        </div>
-      </div>
 
       {equipment.image && (
         <img

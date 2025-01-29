@@ -89,15 +89,15 @@ const App: React.FC = () => {
       <Routes>
         <Route
           path="/equipments"
-          element={<Home equipments={equipments} components={components} onDelete={handleDelete} />}
+          element={<Home equipments={equipments} components={components}  />}
         />
         <Route
           path="/add-equipment"
-          element={<AddEquipment onAdd={handleAddEquipment} />}
+          element={<AddEquipment  />}
         />
         <Route
           path="/equipment/:id"
-          element={<EquipmentDetails equipments={equipments} components={components} onDeleteEquipment={handleDeleteEquipment }  />}
+          element={<EquipmentDetails components={components} onDeleteEquipment={handleDeleteEquipment }  />}
         />
         <Route
           path="/edit-equipment/:id"

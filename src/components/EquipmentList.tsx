@@ -9,9 +9,11 @@ import {
   Badge,
   Input,
   message,
+  Menu,
+  Dropdown,
 } from 'antd';
-import { SearchOutlined, PlusOutlined } from '@ant-design/icons';
-import { Equipment, Component, ScheduledMaintenance } from '../types';
+import { SearchOutlined, PlusOutlined, DownOutlined } from '@ant-design/icons';
+import { Equipment, Component } from '../types';
 import { QRCodeSVG as QRCode } from 'qrcode.react';
 import ScheduledMaintenanceForm2 from './ScheduledMaintenanceForm2';
 import { useEquipments } from '../hooks/useEquipments';
@@ -20,12 +22,10 @@ import { useEquipments } from '../hooks/useEquipments';
 
 interface EquipmentListProps {
   components: Component[];
-  onDelete: (id: number) => void; // Actualizado para recibir un array
 }
 
 const EquipmentList: React.FC<EquipmentListProps> = ({
   components,
-  onDelete,
 }) => {
   // Estado para manejar el modal del QR
   const [isQRModalVisible, setIsQRModalVisible] = useState(false);
@@ -46,10 +46,8 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
     handleDeleteScheduled,
     handleAddScheduled,
     handleScheduledChange,
-    handleResetValues, onAddScheduledMaintenance } = useEquipments()
+    handleResetValues, onAddScheduledMaintenance, deleteEquipment } = useEquipments()
 
-
-    console.log(equipments)
 
   // Funciones para manejar el modal del QR
   const showQRModal = (id: number) => {
@@ -75,7 +73,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
   };
 
   const handleAddMaintenanceOk = () => {
- 
+
     const maintenance = sheduleMaintenance
     if (!maintenance.description) {
       message.error(`Por favor ingresa una descripción para el mantenimiento `);
@@ -122,6 +120,11 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
     handleResetValues();
   };
 
+  const handleDeleteEquipment = (equipmentId: number) => {
+
+    deleteEquipment(equipmentId)
+  }
+
 
 
 
@@ -133,6 +136,42 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
     );
   }, [equipments, searchText]);
 
+
+  const menu = (record: Equipment) => (
+    <Menu>
+      <Menu.Item key="detail">
+        <Link to={`/equipment/${record.id}`}>
+        <Button type="default" >
+            Detalle
+          </Button>
+        </Link>
+     
+      </Menu.Item>
+      <Menu.Item key="edit">
+        <Link to={`/edit-equipment/${record.id}`}>
+          <Button type="default" style={{ background: '#ffc107', color: '#fff' }}>
+            Editar
+          </Button>
+        </Link>
+      </Menu.Item>
+      <Menu.Item key="delete">
+        <Button type="primary" danger onClick={() => handleDeleteEquipment(record.id)}>
+          Eliminar
+        </Button>
+      </Menu.Item>
+      <Menu.Item key="qr">
+        <Button type="default" onClick={() => showQRModal(record.id)}>
+          Generar QR
+        </Button>
+      </Menu.Item>
+      <Menu.Item key="maintenance">
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddMaintenanceModal(record.id)}>
+          Agregar Mtto Prog
+        </Button>
+      </Menu.Item>
+    </Menu>
+  );
+
   // Configuración de columnas para la tabla de Ant Design
   const columns = [
     {
@@ -140,13 +179,13 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
       dataIndex: 'index',
       key: 'index',
       render: (_: any, __: any, index: number) => index + 1, // Número de índice dinámico
-      width: '5%',
+    
     },
     {
       title: 'Nombre',
       dataIndex: 'name',
       key: 'name',
-      width: '20%',
+   
       sorter: (a: Equipment, b: Equipment) => a.name.localeCompare(b.name),
       sortDirections: ['ascend', 'descend'],
     },
@@ -154,14 +193,14 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
       title: 'Tipo',
       dataIndex: 'type',
       key: 'type',
-      width: '15%',
+     
       sorter: (a: Equipment, b: Equipment) => a.type.localeCompare(b.type),
       sortDirections: ['ascend', 'descend'],
     },
     {
       title: 'Status',
       key: 'isActive',
-      width: '15%',
+     
       render: (_: any, record: Equipment) => (
         <Badge
           status={record.isActive ? 'success' : 'error'}
@@ -178,41 +217,13 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
       title: 'Acciones',
       key: 'actions',
       render: (_: any, record: Equipment) => (
-        <Space size="middle">
-          <Link to={`/equipment/${record.id}`}>
-            <Button type="primary">Detalle</Button>
-          </Link>
-          {/* Botones comentados: Editar y Eliminar */}
-          {/*
-          <Link to={`/edit-equipment/${record.id}`}>
-            <Button type="default" style={{ background: '#ffc107', color: '#fff' }}>
-              Editar
-            </Button>
-          </Link>
-          <Button
-            type="primary"
-            danger
-            onClick={() => onDelete(record.id)}
-          >
-            Eliminar
-          </Button>
-          */}
-          <Button
-            type="default"
-            onClick={() => showQRModal(record.id)}
-          >
-            Generar QR
-          </Button>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => showAddMaintenanceModal(record.id)}
-          >
-            Agregar Mtto Prog
-          </Button>
-        </Space>
+        <Dropdown overlay={menu(record)} trigger={['click']}>
+        <Button type="primary">
+          Opciones <DownOutlined />
+        </Button>
+      </Dropdown>
       ),
-      width: '45%',
+     
     },
   ];
 

@@ -1,3 +1,4 @@
+// src/App.tsx
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
@@ -17,10 +18,15 @@ import AddComponent from './pages/AddComponent';
 import LinkComponentToEquipmentPage from './pages/LinkComponentToEquipmentPage';
 import Dashboard from './pages/Dashboard';
 
+import { AuthProvider } from './context/AuthContext';
+import { UserProvider } from './context/UserContext';
+import ProtectedRoute from './ProtectedRoute';
+import Login from './pages/LoginPage';
+
+
 const App: React.FC = () => {
   const [equipments, setEquipments] = useState<Equipment[]>(mockEquipments);
-  const [components, setComponents] = useState(mockComponents);
-
+  const [components, setComponents] = useState<Component[]>(mockComponents);
 
   const handleLinkComponent = (equipmentId: number, componentId: number) => {
     setComponents((prevComponents) =>
@@ -30,11 +36,6 @@ const App: React.FC = () => {
     );
   };
 
-
-  const handleAddEquipment = (equipment: Omit<Equipment, 'id'>) => {
-    setEquipments([...equipments, { id: Date.now(), ...equipment }]);
-  };
-
   const handleUpdate = (updatedEquipment: Equipment) => {
     setEquipments(
       equipments.map((equip) =>
@@ -42,11 +43,6 @@ const App: React.FC = () => {
       )
     );
   };
-
-  const handleDelete = (id: number) => {
-    setEquipments(equipments.filter((equip) => equip.id !== id));
-  };
-
 
   const handleDeleteComponent = (id: number) => {
     const confirmed = window.confirm('¿Estás seguro de que deseas eliminar este componente?');
@@ -76,75 +72,52 @@ const App: React.FC = () => {
   };
 
   const handleDeleteEquipment = (id: number) => {
-    // Lógica para eliminar el equipo
     setEquipments(equipments.filter(equipment => equipment.id !== id));
-    
-    // Opcional: también eliminar componentes relacionados
     setComponents(components.filter(component => component.relatedEquipmentId !== id));
   };
 
   return (
-    <Router>
-      <Navbar />
-      <Routes>
-        <Route
-          path="/equipments"
-          element={<Home equipments={equipments} components={components}  />}
-        />
-        <Route
-          path="/add-equipment"
-          element={<AddEquipment  />}
-        />
-        <Route
-          path="/equipment/:id"
-          element={<EquipmentDetails components={components} onDeleteEquipment={handleDeleteEquipment }  />}
-        />
-        <Route
-          path="/edit-equipment/:id"
-          element={<EditEquipment equipments={equipments} onUpdate={handleUpdate} />}
-        />
+    <AuthProvider>
+      <UserProvider>
+        <Router>
+          <Routes>
+            {/* Ruta de Login (No Protegida) */}
+            <Route path="/login" element={<Login />} />
 
-        <Route
-          path="/schedule-maintenance/:id"
-          element={<ScheduleMaintenance equipments={equipments} onUpdate={handleUpdate} />}
-        />
+            {/* Rutas Protegidas */}
+            <Route element={<ProtectedRoute />}>
+              {/* Navbar dentro de rutas protegidas */}
+              <Route
+                path="/*"
+                element={
+                  <>
+                    <Navbar />
+                    <Routes>
+                      <Route path="/" element={<Dashboard equipments={equipments} />} />
+                      <Route path="/equipments" element={<Home equipments={equipments} components={components} />} />
+                      <Route path="/add-equipment" element={<AddEquipment />} />
+                      <Route path="/equipment/:id" element={<EquipmentDetails components={components} onDeleteEquipment={handleDeleteEquipment} />} />
+                      <Route path="/edit-equipment/:id" element={<EditEquipment equipments={equipments} onUpdate={handleUpdate} />} />
+                      <Route path="/schedule-maintenance/:id" element={<ScheduleMaintenance equipments={equipments} onUpdate={handleUpdate} />} />
+                      <Route path="/add-component" element={<AddComponent onAdd={handleAddComponent} equipments={equipments} />} />
+                      <Route path="/link-components/:id" element={<LinkComponentsPage equipments={equipments} components={components} onLinkComponent={handleLinkComponent} />} />
+                      <Route path="/link-component/:id" element={<LinkComponentToEquipmentPage components={components} equipments={equipments} onLinkComponentToEquipment={handleLinkComponentToEquipment} />} />
+                      <Route path="/components" element={<ComponentListPage components={components} onDelete={handleDeleteComponent} />} />
+                      <Route path="/component/:id" element={<ComponentDetails components={components} equipments={equipments} />} />
+                      <Route path="/edit-component/:id" element={<EditComponent components={components} onUpdate={handleUpdateComponent} />} />
+                      {/* Agrega aquí más rutas protegidas si es necesario */}
+                    </Routes>
+                  </>
+                }
+              />
+            </Route>
 
-        <Route
-          path="/add-component"
-          element={<AddComponent onAdd={handleAddComponent} equipments={equipments} />}
-        />
-
-        <Route
-          path="/link-components/:id"
-          element={
-            <LinkComponentsPage
-              equipments={equipments}
-              components={components}
-              onLinkComponent={handleLinkComponent}
-            />
-          }
-        />
-        <Route
-          path="/link-component/:id"
-          element={
-            <LinkComponentToEquipmentPage
-              components={components}
-              equipments={equipments}
-              onLinkComponentToEquipment={handleLinkComponentToEquipment}
-            />
-          }
-        />
-
-        <Route path="/" element={<Dashboard equipments={equipments} />} />
-
-
-        <Route path="/components" element={<ComponentListPage components={components} onDelete={handleDeleteComponent} />} />
-        <Route path="/component/:id" element={<ComponentDetails components={components} equipments={equipments} />} />
-        <Route path="/edit-component/:id" element={<EditComponent components={components} onUpdate={handleUpdateComponent} />} />
-
-
-      </Routes>
-    </Router>
+            {/* Redirección por defecto a Login si la ruta no existe */}
+            <Route path="*" element={<Login />} />
+          </Routes>
+        </Router>
+      </UserProvider>
+    </AuthProvider>
   );
 };
 

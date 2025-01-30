@@ -1,43 +1,46 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+// src/components/Navbar.tsx
+import React from "react";
+import { Menu, Layout, Avatar } from "antd";
+import { Link } from "react-router-dom";
+
+import Logout from "./Logout";
+import { useUser } from "../hooks/useUser";
+
+
+const { Header } = Layout;
 
 const Navbar: React.FC = () => {
+  const { user } = useUser();
+
   return (
-    <nav className="bg-gray-800 text-white shadow-lg">
-      <div className="container mx-auto p-4 flex justify-between items-center">
-        <div className="text-2xl font-bold">
-          <Link to="/" className="hover:text-blue-400">
-            Mi App
-          </Link>
+    <Layout>
+      <Header>
+        <div style={{ float: "left", color: "#fff", fontSize: "20px", marginRight: "20px" }}>
+          Dashboard
         </div>
-        <ul className="flex space-x-6">
-          <li>
-            <Link
-              to="/"
-              className="text-lg hover:text-blue-400 transition-colors duration-200"
-            >
-              Inicio
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/equipments"
-              className="text-lg hover:text-blue-400 transition-colors duration-200"
-            >
-              Equipos
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/components"
-              className="text-lg hover:text-blue-400 transition-colors duration-200"
-            >
-              Componentes
-            </Link>
-          </li>
-        </ul>
-      </div>
-    </nav>
+        <Menu theme="dark" mode="horizontal">
+          <Menu.Item key="1">
+            <Link to="/">Inicio</Link>
+          </Menu.Item>
+          <Menu.Item key="2">
+            <Link to="/equipments">Equipos</Link>
+          </Menu.Item>
+          <Menu.Item key="3">
+            <Link to="/components">Componentes</Link>
+          </Menu.Item>
+          {/* Agrega más enlaces según sea necesario */}
+          <Menu.Item key="user" style={{ marginLeft: "auto" }}>
+            {user && (
+              <>
+                <Avatar src={user.profilePicture} style={{ marginRight: 8 }} />
+                {user.name}
+                <Logout />
+              </>
+            )}
+          </Menu.Item>
+        </Menu>
+      </Header>
+    </Layout>
   );
 };
 

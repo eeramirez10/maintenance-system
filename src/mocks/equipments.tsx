@@ -1,4 +1,3 @@
-// mockEquipments.ts
 import { Equipment } from '../types';
 
 const mockEquipments: Equipment[] = [
@@ -43,7 +42,9 @@ const mockEquipments: Equipment[] = [
         },
       },
     ],
-    isActive: true, // Equipo activo
+    isActive: true,
+    createdBy: 2, // Usuario que creó el equipo
+    updatedBy: 1, // Última persona que lo editó
   },
   {
     id: 2,
@@ -76,7 +77,9 @@ const mockEquipments: Equipment[] = [
         },
       },
     ],
-    isActive: false, // Equipo inactivo
+    isActive: false,
+    createdBy: 1, // Usuario admin que creó el equipo
+    updatedBy: 2, // Última persona que lo editó
   },
   {
     id: 3,
@@ -111,7 +114,9 @@ const mockEquipments: Equipment[] = [
         },
       },
     ],
-    isActive: true, // Equipo activo
+    isActive: true,
+    createdBy: 3, // Usuario operador
+    updatedBy: 3, // Última persona que lo editó
   },
   {
     id: 4,
@@ -154,7 +159,9 @@ const mockEquipments: Equipment[] = [
         },
       },
     ],
-    isActive: true, // Equipo activo
+    isActive: true,
+    createdBy: 1, // Usuario admin
+    updatedBy: 2, // Última persona que lo editó
   },
 ];
 

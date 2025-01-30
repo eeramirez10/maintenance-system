@@ -4,6 +4,7 @@ import { useContext, useState } from 'react'
 import { Equipment, ScheduledMaintenance } from '../types';
 
 import EquipmentContext from '../context/EquipmentContext'
+import { useUser } from './useUser';
 
 const sheduledMaintenanceinitialState: ScheduledMaintenance = {
   description: '',
@@ -27,12 +28,14 @@ interface Props {
   onAddScheduledMaintenance: (equipmentId: number, sheduleMaintenance: ScheduledMaintenance) => void;
   deleteEquipment: (equipmentId: number) => void
   handleAddEquipment: (equipment: Omit<Equipment, 'id'>) => void
+  onEditEquipment:(editedEquipment:Equipment) => void
 }
 
 
 export const useEquipments = (): Props => {
 
   const { equipments, setEquipments } = useContext(EquipmentContext)
+  const { user } = useUser()
 
   // Estado para mantener los mantenimientos programados en el formulario
   const [scheduledMaintenances, setScheduledMaintenances] = useState<ScheduledMaintenance[]>([]);
@@ -114,8 +117,16 @@ export const useEquipments = (): Props => {
   };
 
   const handleAddEquipment = (equipment: Omit<Equipment, 'id'>) => {
-    setEquipments([...equipments, { id: Date.now(), ...equipment }]);
+    setEquipments([...equipments, { id: Date.now(), ...equipment, isActive: true, createdBy: user.id }]);
   };
+
+
+  const onEditEquipment = (editedEquipment:Equipment ) => {
+    const equipment = equipments.map((equipment) => equipment.id === editedEquipment.id ? editedEquipment : equipment )
+
+    setEquipments(equipment );
+
+  }
 
   return {
     sheduleMaintenance,
@@ -127,6 +138,7 @@ export const useEquipments = (): Props => {
     handleResetValues,
     onAddScheduledMaintenance,
     deleteEquipment,
-    handleAddEquipment
+    handleAddEquipment,
+    onEditEquipment
   }
 }

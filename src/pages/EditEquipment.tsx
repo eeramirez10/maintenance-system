@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Equipment, CustomField, Maintenance, ScheduledMaintenance } from '../types';
+import { useEquipments } from '../hooks/useEquipments';
 
 interface EditEquipmentProps {
-  equipments: Equipment[];
+  equipments?: Equipment[];
   onUpdate: (updatedEquipment: Equipment) => void;
 }
 
-const EditEquipment: React.FC<EditEquipmentProps> = ({ equipments, onUpdate }) => {
+const EditEquipment: React.FC<EditEquipmentProps> = ({  onUpdate }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { equipments, onEditEquipment } = useEquipments()
   const equipment = equipments.find((equip) => equip.id === Number(id));
 
   if (!equipment) {
@@ -125,8 +127,11 @@ const EditEquipment: React.FC<EditEquipmentProps> = ({ equipments, onUpdate }) =
       maintenances,
       scheduledMaintenances,
     };
-    onUpdate(updatedEquipment);
-    navigate(`/equipment/${equipment.id}`);
+
+
+
+    onEditEquipment(updatedEquipment);
+    navigate(`/equipments`);
   };
 
   return (

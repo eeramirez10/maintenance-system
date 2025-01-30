@@ -1,12 +1,31 @@
+// src/components/AddEquipment.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  Form,
+  Input,
+  Button,
+  Upload,
+  message,
+  Space,
+  Card,
+  InputNumber,
+  Select,
+  Divider,
+} from 'antd';
+import {
+  PlusOutlined,
+  MinusCircleOutlined,
+  UploadOutlined,
+} from '@ant-design/icons';
 import { Equipment, CustomField, Maintenance, ScheduledMaintenance } from '../types';
 import { useEquipments } from '../hooks/useEquipments';
 
+const { Option } = Select;
 
-
-const AddEquipment = () => {
+const AddEquipment: React.FC = () => {
   const navigate = useNavigate();
+  const { handleAddEquipment } = useEquipments();
   const [name, setName] = useState('');
   const [type, setType] = useState('');
   const [image, setImage] = useState<string | null>(null);
@@ -14,25 +33,27 @@ const AddEquipment = () => {
   const [maintenances, setMaintenances] = useState<Maintenance[]>([]);
   const [scheduledMaintenances, setScheduledMaintenances] = useState<ScheduledMaintenance[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const { handleAddEquipment } =  useEquipments()
+  const [loading, setLoading] = useState(false);
 
   // Manejo de Imagen
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleImageChange = (info: any) => {
+    const file = info.file;
+
+    console.log(file)
+
     if (!file) return;
 
     // Validación de formato
     const validFormats = ['image/jpeg', 'image/png', 'image/jpg'];
     if (!validFormats.includes(file.type)) {
-      setErrorMessage('Solo se permiten imágenes en formato JPEG, JPG o PNG.');
+      message.error('Solo se permiten imágenes en formato JPEG, JPG o PNG.');
       return;
     }
 
     // Validación de tamaño (5 MB máximo)
     const maxSize = 5 * 1024 * 1024; // 5 MB
     if (file.size > maxSize) {
-      setErrorMessage('El tamaño de la imagen no puede superar los 5 MB.');
+      message.error('El tamaño de la imagen no puede superar los 5 MB.');
       return;
     }
 
@@ -146,6 +167,10 @@ const AddEquipment = () => {
       setErrorMessage('El tipo de equipo es obligatorio.');
       return;
     }
+    if (!image) {
+      setErrorMessage('La imagen del equipo es obligatoria.');
+      return;
+    }
 
     const newEquipment: Equipment = {
       id: Date.now(), // Generar un ID único
@@ -157,250 +182,243 @@ const AddEquipment = () => {
       scheduledMaintenances,
     };
     handleAddEquipment(newEquipment);
+    message.success('Equipo agregado exitosamente.');
     navigate('/');
   };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto bg-white shadow rounded">
-      <h1 className="text-2xl font-bold mb-4">Agregar Equipo</h1>
+    <Card title="Agregar Equipo" bordered={false} style={{ maxWidth: 800, margin: 'auto' }}>
       {errorMessage && (
-        <div className="mb-4 px-4 py-2 bg-red-100 text-red-700 border border-red-400 rounded">
+        <div style={{ marginBottom: 16, padding: '12px', backgroundColor: '#fff1f0', color: '#cf1322', border: '1px solid #ffa39e', borderRadius: '4px' }}>
           {errorMessage}
         </div>
       )}
-      <input
-        type="text"
-        placeholder="Nombre del Equipo"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        className="w-full px-4 py-2 border border-gray-300 rounded mb-4"
-      />
-      <input
-        type="text"
-        placeholder="Tipo de Equipo"
-        value={type}
-        onChange={(e) => setType(e.target.value)}
-        className="w-full px-4 py-2 border border-gray-300 rounded mb-4"
-      />
-      <div className="mb-4">
-        <label className="block text-gray-700 font-semibold mb-2">Subir Imagen</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-          className="w-full px-4 py-2 border border-gray-300 rounded"
-        />
-        {image && (
-          <div className="mt-4">
+      <Form layout="vertical">
+        <Form.Item label="Nombre del Equipo" required>
+          <Input
+            placeholder="Nombre del Equipo"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </Form.Item>
+
+        <Form.Item label="Tipo de Equipo" required>
+          <Input
+            placeholder="Tipo de Equipo"
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+          />
+        </Form.Item>
+
+        <Form.Item label="Subir Imagen" >
+          <Upload
+            name="image"
+            listType="picture"
+            showUploadList={false}
+            beforeUpload={() => false}
+            onChange={handleImageChange}
+            accept="image/*"
+          >
+            <Button icon={<UploadOutlined />}>Click para subir</Button>
+          </Upload>
+          {image && (
             <img
               src={image}
               alt="Previsualización"
-              className="w-full h-48 object-cover rounded"
+              style={{ width: '100%', maxHeight: 300, objectFit: 'cover', marginTop: 16 }}
             />
-          </div>
-        )}
-      </div>
+          )}
+        </Form.Item>
 
-      {/* Campos Personalizados */}
-      <h2 className="text-xl font-bold mt-6">Campos Personalizados</h2>
-      <ul className="divide-y divide-gray-200 mt-4">
+        <Divider orientation="left">Campos Personalizados</Divider>
         {customFields.map((field, index) => (
-          <li key={index} className="py-4 flex justify-between items-center">
-            <div className="flex-1">
-              <input
-                type="text"
+          <Space key={index} align="baseline" style={{ display: 'flex', marginBottom: 8 }}>
+            <Form.Item
+              label={`Nombre del Campo ${index + 1}`}
+              required
+              style={{ margin: 0 }}
+            >
+              <Input
                 placeholder="Nombre del Campo"
                 value={field.name}
                 onChange={(e) => handleFieldChange(index, 'name', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded"
               />
-              <input
-                type="text"
+            </Form.Item>
+            <Form.Item
+              label={`Valor del Campo ${index + 1}`}
+              required
+              style={{ margin: 0 }}
+            >
+              <Input
                 placeholder="Valor del Campo"
                 value={field.value}
                 onChange={(e) => handleFieldChange(index, 'value', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded mt-2"
               />
-            </div>
-            <button
+            </Form.Item>
+            <Button
+              type="danger"
+              icon={<MinusCircleOutlined />}
               onClick={() => handleDeleteField(index)}
-              className="ml-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-            >
-              Eliminar
-            </button>
-          </li>
+            />
+          </Space>
         ))}
-      </ul>
-      <button
-        onClick={handleAddField}
-        className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-      >
-        Agregar Campo
-      </button>
+        <Form.Item>
+          <Button type="dashed" onClick={handleAddField} block icon={<PlusOutlined />}>
+            Agregar Campo
+          </Button>
+        </Form.Item>
 
-      {/* Mantenimientos Realizados */}
-      <h2 className="text-xl font-bold mt-6">Mantenimientos Realizados</h2>
-      <ul className="divide-y divide-gray-200 mt-4">
+        <Divider orientation="left">Mantenimientos Realizados</Divider>
         {maintenances.map((maintenance, index) => (
-          <li key={index} className="py-4">
-            <input
-              type="text"
-              placeholder="Descripción del Mantenimiento"
-              value={maintenance.description}
-              onChange={(e) => handleMaintenanceChange(index, 'description', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded"
-            />
-            <label className="block text-gray-700 mt-2 font-semibold">Tipo de Criterio:</label>
-            <select
-              value={maintenance.criteria?.type || 'number'}
-              onChange={(e) =>
-                handleMaintenanceChange(index, 'type', e.target.value as 'number' | 'date')
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded"
-            >
-              <option value="number">Criterio Numérico</option>
-              <option value="date">Fecha</option>
-            </select>
-            {maintenance.criteria?.type === 'date' && (
-              <input
-                type="date"
-                value={maintenance.criteria?.currentValue as string}
-                onChange={(e) => handleMaintenanceChange(index, 'currentValue', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded mt-2"
+          <Card key={index} type="inner" title={`Mantenimiento ${index + 1}`} style={{ marginBottom: 16 }}>
+            <Form.Item label="Descripción del Mantenimiento" required>
+              <Input
+                placeholder="Descripción del Mantenimiento"
+                value={maintenance.description}
+                onChange={(e) => handleMaintenanceChange(index, 'description', e.target.value)}
               />
+            </Form.Item>
+            <Form.Item label="Tipo de Criterio" required>
+              <Select
+                value={maintenance.criteria.type}
+                onChange={(value) => handleMaintenanceChange(index, 'type', value)}
+                placeholder="Selecciona el tipo de criterio"
+              >
+                <Option value="number">Criterio Numérico</Option>
+                <Option value="date">Fecha</Option>
+              </Select>
+            </Form.Item>
+            {maintenance.criteria.type === 'date' ? (
+              <Form.Item label="Fecha de Inspección" required>
+                <Input
+                  type="date"
+                  value={maintenance.criteria.currentValue as string}
+                  onChange={(e) => handleMaintenanceChange(index, 'currentValue', e.target.value)}
+                />
+              </Form.Item>
+            ) : (
+              <>
+                <Form.Item label="Valor Actual" required>
+                  <InputNumber
+                    min={0}
+                    style={{ width: '100%' }}
+                    value={maintenance.criteria.currentValue as number}
+                    onChange={(value) => handleMaintenanceChange(index, 'currentValue', value)}
+                  />
+                </Form.Item>
+                <Form.Item label="Valor Mínimo" required>
+                  <InputNumber
+                    min={0}
+                    style={{ width: '100%' }}
+                    value={maintenance.criteria.minValue}
+                    onChange={(value) => handleMaintenanceChange(index, 'minValue', value)}
+                  />
+                </Form.Item>
+                <Form.Item label="Valor Máximo" required>
+                  <InputNumber
+                    min={0}
+                    style={{ width: '100%' }}
+                    value={maintenance.criteria.maxValue}
+                    onChange={(value) => handleMaintenanceChange(index, 'maxValue', value)}
+                  />
+                </Form.Item>
+              </>
             )}
-            {maintenance.criteria?.type === 'number' && (
-              <div className="flex gap-4 mt-2">
-                <input
-                  type="number"
-                  placeholder="Valor Actual"
-                  value={maintenance.criteria?.currentValue || ''}
-                  onChange={(e) =>
-                    handleMaintenanceChange(index, 'currentValue', Number(e.target.value))
-                  }
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded"
-                />
-                <input
-                  type="number"
-                  placeholder="Valor Mínimo"
-                  value={maintenance.criteria?.minValue || ''}
-                  onChange={(e) =>
-                    handleMaintenanceChange(index, 'minValue', Number(e.target.value))
-                  }
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded"
-                />
-                <input
-                  type="number"
-                  placeholder="Valor Máximo"
-                  value={maintenance.criteria?.maxValue || ''}
-                  onChange={(e) =>
-                    handleMaintenanceChange(index, 'maxValue', Number(e.target.value))
-                  }
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded"
-                />
-              </div>
-            )}
-            <button
+            <Button
+              type="danger"
+              icon={<MinusCircleOutlined />}
               onClick={() => handleDeleteMaintenance(index)}
-              className="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              style={{ marginTop: 16 }}
             >
-              Eliminar
-            </button>
-          </li>
+              Eliminar Mantenimiento
+            </Button>
+          </Card>
         ))}
-      </ul>
-      <button
-        onClick={handleAddMaintenance}
-        className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-      >
-        Agregar Mantenimiento
-      </button>
+        <Form.Item>
+          <Button type="dashed" onClick={handleAddMaintenance} block icon={<PlusOutlined />}>
+            Agregar Mantenimiento
+          </Button>
+        </Form.Item>
 
-      {/* Mantenimientos Programados */}
-      <h2 className="text-xl font-bold mt-6">Mantenimientos Programados</h2>
-      <ul className="divide-y divide-gray-200 mt-4">
+        <Divider orientation="left">Mantenimientos Programados</Divider>
         {scheduledMaintenances.map((scheduled, index) => (
-          <li key={index} className="py-4">
-            <input
-              type="text"
-              placeholder="Descripción del Mantenimiento Programado"
-              value={scheduled.description}
-              onChange={(e) => handleScheduledChange(index, 'description', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded"
-            />
-            <label className="block text-gray-700 mt-2 font-semibold">Tipo de Criterio:</label>
-            <select
-              value={scheduled.criteria?.type || 'number'}
-              onChange={(e) =>
-                handleScheduledChange(index, 'type', e.target.value as 'number' | 'date')
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded"
-            >
-              <option value="number">Criterio Numérico</option>
-              <option value="date">Fecha</option>
-            </select>
-            {scheduled.criteria?.type === 'date' && (
-              <input
-                type="date"
-                value={scheduled.criteria?.currentValue as string}
-                onChange={(e) => handleScheduledChange(index, 'currentValue', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded mt-2"
+          <Card key={index} type="inner" title={`Mantenimiento Programado ${index + 1}`} style={{ marginBottom: 16 }}>
+            <Form.Item label="Descripción del Mantenimiento Programado" required>
+              <Input
+                placeholder="Descripción del Mantenimiento Programado"
+                value={scheduled.description}
+                onChange={(e) => handleScheduledChange(index, 'description', e.target.value)}
               />
+            </Form.Item>
+            <Form.Item label="Tipo de Criterio" required>
+              <Select
+                value={scheduled.criteria.type}
+                onChange={(value) => handleScheduledChange(index, 'type', value)}
+                placeholder="Selecciona el tipo de criterio"
+              >
+                <Option value="number">Criterio Numérico</Option>
+                <Option value="date">Fecha</Option>
+              </Select>
+            </Form.Item>
+            {scheduled.criteria.type === 'date' ? (
+              <Form.Item label="Fecha de Inspección" required>
+                <Input
+                  type="date"
+                  value={scheduled.criteria.currentValue as string}
+                  onChange={(e) => handleScheduledChange(index, 'currentValue', e.target.value)}
+                />
+              </Form.Item>
+            ) : (
+              <>
+                <Form.Item label="Valor Actual" required>
+                  <InputNumber
+                    min={0}
+                    style={{ width: '100%' }}
+                    value={scheduled.criteria.currentValue as number}
+                    onChange={(value) => handleScheduledChange(index, 'currentValue', value)}
+                  />
+                </Form.Item>
+                <Form.Item label="Valor Mínimo" required>
+                  <InputNumber
+                    min={0}
+                    style={{ width: '100%' }}
+                    value={scheduled.criteria.minValue}
+                    onChange={(value) => handleScheduledChange(index, 'minValue', value)}
+                  />
+                </Form.Item>
+                <Form.Item label="Valor Máximo" required>
+                  <InputNumber
+                    min={0}
+                    style={{ width: '100%' }}
+                    value={scheduled.criteria.maxValue}
+                    onChange={(value) => handleScheduledChange(index, 'maxValue', value)}
+                  />
+                </Form.Item>
+              </>
             )}
-            {scheduled.criteria?.type === 'number' && (
-              <div className="flex gap-4 mt-2">
-                <input
-                  type="number"
-                  placeholder="Valor Actual"
-                  value={scheduled.criteria?.currentValue || ''}
-                  onChange={(e) =>
-                    handleScheduledChange(index, 'currentValue', Number(e.target.value))
-                  }
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded"
-                />
-                <input
-                  type="number"
-                  placeholder="Valor Mínimo"
-                  value={scheduled.criteria?.minValue || ''}
-                  onChange={(e) =>
-                    handleScheduledChange(index, 'minValue', Number(e.target.value))
-                  }
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded"
-                />
-                <input
-                  type="number"
-                  placeholder="Valor Máximo"
-                  value={scheduled.criteria?.maxValue || ''}
-                  onChange={(e) =>
-                    handleScheduledChange(index, 'maxValue', Number(e.target.value))
-                  }
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded"
-                />
-              </div>
-            )}
-            <button
+            <Button
+              type="danger"
+              icon={<MinusCircleOutlined />}
               onClick={() => handleDeleteScheduled(index)}
-              className="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              style={{ marginTop: 16 }}
             >
-              Eliminar
-            </button>
-          </li>
+              Eliminar Mantenimiento Programado
+            </Button>
+          </Card>
         ))}
-      </ul>
-      <button
-        onClick={handleAddScheduled}
-        className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-      >
-        Agregar Mantenimiento Programado
-      </button>
+        <Form.Item>
+          <Button type="dashed" onClick={handleAddScheduled} block icon={<PlusOutlined />}>
+            Agregar Mantenimiento Programado
+          </Button>
+        </Form.Item>
 
-      <button
-        onClick={handleSave}
-        className="mt-6 block w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-      >
-        Guardar Equipo
-      </button>
-    </div>
+        <Form.Item>
+          <Button type="primary" onClick={handleSave} block>
+            Guardar Equipo
+          </Button>
+        </Form.Item>
+      </Form>
+    </Card>
   );
 };
 

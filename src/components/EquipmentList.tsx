@@ -1,4 +1,4 @@
-// EquipmentList.tsx
+// src/components/EquipmentList.tsx
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -17,7 +17,7 @@ import { Equipment, Component } from '../types';
 import { QRCodeSVG as QRCode } from 'qrcode.react';
 import ScheduledMaintenanceForm2 from './ScheduledMaintenanceForm2';
 import { useEquipments } from '../hooks/useEquipments';
-
+import { useUser } from '../hooks/useUser';
 
 
 interface EquipmentListProps {
@@ -27,29 +27,77 @@ interface EquipmentListProps {
 const EquipmentList: React.FC<EquipmentListProps> = ({
   components,
 }) => {
-  // Estado para manejar el modal del QR
+  const { user } = useUser(); // Obtener el usuario autenticado
+  const { equipments } = useEquipments()
+  const userRole = user?.role; // Obtener el rol del usuario
+  const userId = user?.id; // Obtener el ID del usuario
+
+  // Definir permisos basados en roles
+  const permissions = useMemo(() => {
+    const perms = {
+      canView: true, // Todos los roles pueden ver
+      canAddEquipment: false,
+      canEditEquipment: false,
+      canDeleteEquipment: false,
+      canGenerateQR: false,
+      canAddMaintenance: false,
+      canEditMaintenance: false,
+      canDeleteMaintenance: false,
+      canAddComponent: false,
+      canEditComponent: false,
+      canDeleteComponent: false,
+      canAddRepair: false,
+    };
+
+    if (userRole === 'admin') {
+      perms.canAddEquipment = true;
+      perms.canEditEquipment = true;
+      perms.canDeleteEquipment = true;
+      perms.canGenerateQR = true;
+      perms.canAddMaintenance = true;
+      perms.canEditMaintenance = true;
+      perms.canDeleteMaintenance = true;
+      perms.canAddComponent = true;
+      perms.canEditComponent = true;
+      perms.canDeleteComponent = true;
+      perms.canAddRepair = true;
+    } else if (userRole === 'operador') {
+      perms.canAddEquipment = true;
+      perms.canEditEquipment = true;
+      perms.canGenerateQR = true;
+      perms.canAddMaintenance = true;
+      perms.canEditMaintenance = true;
+      perms.canAddComponent = true;
+      perms.canEditComponent = true;
+      // Los operadores no pueden eliminar equipos ni componentes
+    } else if (userRole === 'usuario') {
+      perms.canAddMaintenance = true; // Alta de mantenimientos diarios
+      perms.canAddRepair = true; // Alta de reparaciones
+      perms.canAddComponent = true;
+      perms.canDeleteComponent = true;
+      perms.canGenerateQR = true;
+      // Los usuarios no pueden editar equipos, componentes o eliminarlos
+    }
+
+    return perms;
+  }, [userRole]);
+
+  // Función para verificar si el usuario puede editar un equipo
+  const canEditEquipment = (equipment: Equipment) => {
+    if (userRole === 'admin' || userRole === 'operador') return true;
+    return false;
+  };
+
+  // Función para verificar si el usuario puede eliminar un equipo
+  const canDeleteEquipment = (equipment: Equipment) => {
+    if (userRole === 'admin') return true;
+    return false;
+  };
+
+  // Funciones para manejar el modal del QR
   const [isQRModalVisible, setIsQRModalVisible] = useState(false);
   const [selectedEquipmentIdForQR, setSelectedEquipmentIdForQR] = useState<number | null>(null);
 
-  // Estado para manejar el modal de Agregar Mantenimiento Programado
-  const [isAddMaintenanceModalVisible, setIsAddMaintenanceModalVisible] = useState(false);
-  const [selectedEquipmentIdForMaintenance, setSelectedEquipmentIdForMaintenance] = useState<number | null>(null);
-
-  // Estado para el buscador
-  const [searchText, setSearchText] = useState<string>('');
-
-
-  const {
-    sheduleMaintenance,
-    scheduledMaintenances,
-    equipments,
-    handleDeleteScheduled,
-    handleAddScheduled,
-    handleScheduledChange,
-    handleResetValues, onAddScheduledMaintenance, deleteEquipment } = useEquipments()
-
-
-  // Funciones para manejar el modal del QR
   const showQRModal = (id: number) => {
     setSelectedEquipmentIdForQR(id);
     setIsQRModalVisible(true);
@@ -66,26 +114,28 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
   };
 
   // Funciones para manejar el modal de Agregar Mantenimiento Programado
+  const [isAddMaintenanceModalVisible, setIsAddMaintenanceModalVisible] = useState(false);
+  const [selectedEquipmentIdForMaintenance, setSelectedEquipmentIdForMaintenance] = useState<number | null>(null);
+
   const showAddMaintenanceModal = (id: number) => {
     setSelectedEquipmentIdForMaintenance(id);
     setIsAddMaintenanceModalVisible(true);
-    handleResetValues() // Resetear mantenimientos al abrir el modal
+    handleResetValues(); // Resetear mantenimientos al abrir el modal
   };
 
   const handleAddMaintenanceOk = () => {
-
-    const maintenance = sheduleMaintenance
+    const maintenance = sheduleMaintenance;
     if (!maintenance.description) {
-      message.error(`Por favor ingresa una descripción para el mantenimiento `);
+      message.error(`Por favor ingresa una descripción para el mantenimiento.`);
       return;
     }
     if (!maintenance.criteria?.type) {
-      message.error(`Por favor selecciona el tipo de criterio para el mantenimiento `);
+      message.error(`Por favor selecciona el tipo de criterio para el mantenimiento.`);
       return;
     }
     if (maintenance.criteria.type === 'date') {
       if (!maintenance.criteria.currentValue) {
-        message.error(`Por favor ingresa la fecha de inspección para el mantenimiento `);
+        message.error(`Por favor ingresa la fecha de inspección para el mantenimiento.`);
         return;
       }
     }
@@ -95,19 +145,18 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
         maintenance.criteria.minValue === undefined ||
         maintenance.criteria.maxValue === undefined
       ) {
-        message.error(`Por favor ingresa todos los valores numéricos para el mantenimiento `);
+        message.error(`Por favor ingresa todos los valores numéricos para el mantenimiento.`);
         return;
       }
       if (maintenance.criteria.maxValue <= maintenance.criteria.currentValue) {
-        message.error(`El valor máximo debe ser mayor que el valor actual para el mantenimiento `);
+        message.error(`El valor máximo debe ser mayor que el valor actual para el mantenimiento.`);
         return;
       }
     }
 
-
     if (selectedEquipmentIdForMaintenance !== null) {
       onAddScheduledMaintenance(selectedEquipmentIdForMaintenance, sheduleMaintenance);
-      message.success('Mantenimientos programados agregados exitosamente');
+      message.success('Mantenimientos programados agregados exitosamente.');
     }
     setIsAddMaintenanceModalVisible(false);
     setSelectedEquipmentIdForMaintenance(null);
@@ -120,55 +169,81 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
     handleResetValues();
   };
 
-  const handleDeleteEquipment = (equipmentId: number) => {
+  // Función para manejar la eliminación del equipo con permisos
+  const { deleteEquipment, sheduleMaintenance, onAddScheduledMaintenance, handleResetValues, handleScheduledChange, handleDeleteScheduled, handleAddScheduled } = useEquipments();
 
-    deleteEquipment(equipmentId)
-  }
+  const handleDeleteEquipmentFunc = (equipmentId: number) => {
+    const equipment = equipments.find((eq) => eq.id === equipmentId);
+    if (!equipment) {
+      message.error('Equipo no encontrado.');
+      return;
+    }
 
+    // Solo admin puede eliminar
+    if (!canDeleteEquipment(equipment)) {
+      message.error('No tienes permisos para eliminar este equipo.');
+      return;
+    }
 
-
-
+    const confirmed = window.confirm('¿Estás seguro de que deseas eliminar este equipo?');
+    if (confirmed) {
+      deleteEquipment(equipmentId);
+      message.success('Equipo eliminado exitosamente.');
+    }
+  };
 
   // Filtrar equipos basados en el texto de búsqueda
+  const [searchText, setSearchText] = useState<string>('');
   const filteredEquipments = useMemo(() => {
     return equipments.filter((equipment) =>
       equipment.name.toLowerCase().includes(searchText.toLowerCase())
     );
   }, [equipments, searchText]);
 
-
+  // Menú dinámico basado en permisos
   const menu = (record: Equipment) => (
     <Menu>
       <Menu.Item key="detail">
         <Link to={`/equipment/${record.id}`}>
-        <Button type="default" >
+          <Button type="default" block>
             Detalle
           </Button>
         </Link>
-     
       </Menu.Item>
-      <Menu.Item key="edit">
-        <Link to={`/edit-equipment/${record.id}`}>
-          <Button type="default" style={{ background: '#ffc107', color: '#fff' }}>
-            Editar
+
+      {(userRole === 'admin' || userRole === 'operador') && (
+        <Menu.Item key="edit">
+          <Link to={`/edit-equipment/${record.id}`}>
+            <Button type="default" style={{ background: '#ffc107', color: '#fff' }} block>
+              Editar
+            </Button>
+          </Link>
+        </Menu.Item>
+      )}
+
+      {userRole === 'admin' && (
+        <Menu.Item key="delete">
+          <Button type="primary" danger onClick={() => handleDeleteEquipmentFunc(record.id)} block>
+            Eliminar
           </Button>
-        </Link>
-      </Menu.Item>
-      <Menu.Item key="delete">
-        <Button type="primary" danger onClick={() => handleDeleteEquipment(record.id)}>
-          Eliminar
-        </Button>
-      </Menu.Item>
-      <Menu.Item key="qr">
-        <Button type="default" onClick={() => showQRModal(record.id)}>
-          Generar QR
-        </Button>
-      </Menu.Item>
-      <Menu.Item key="maintenance">
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddMaintenanceModal(record.id)}>
-          Agregar Mtto Prog
-        </Button>
-      </Menu.Item>
+        </Menu.Item>
+      )}
+
+      {permissions.canGenerateQR && (
+        <Menu.Item key="qr">
+          <Button type="default" onClick={() => showQRModal(record.id)} block>
+            Generar QR
+          </Button>
+        </Menu.Item>
+      )}
+
+      {permissions.canAddMaintenance && (
+        <Menu.Item key="maintenance">
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddMaintenanceModal(record.id)} block>
+            Agregar Mtto Prog
+          </Button>
+        </Menu.Item>
+      )}
     </Menu>
   );
 
@@ -179,13 +254,11 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
       dataIndex: 'index',
       key: 'index',
       render: (_: any, __: any, index: number) => index + 1, // Número de índice dinámico
-    
     },
     {
       title: 'Nombre',
       dataIndex: 'name',
       key: 'name',
-   
       sorter: (a: Equipment, b: Equipment) => a.name.localeCompare(b.name),
       sortDirections: ['ascend', 'descend'],
     },
@@ -193,14 +266,12 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
       title: 'Tipo',
       dataIndex: 'type',
       key: 'type',
-     
       sorter: (a: Equipment, b: Equipment) => a.type.localeCompare(b.type),
       sortDirections: ['ascend', 'descend'],
     },
     {
       title: 'Status',
       key: 'isActive',
-     
       render: (_: any, record: Equipment) => (
         <Badge
           status={record.isActive ? 'success' : 'error'}
@@ -218,12 +289,11 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
       key: 'actions',
       render: (_: any, record: Equipment) => (
         <Dropdown overlay={menu(record)} trigger={['click']}>
-        <Button type="primary">
-          Opciones <DownOutlined />
-        </Button>
-      </Dropdown>
+          <Button type="primary">
+            Opciones <DownOutlined />
+          </Button>
+        </Dropdown>
       ),
-     
     },
   ];
 
@@ -282,11 +352,13 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
             allowClear
             className="w-full md:w-64"
           />
-          <Link to="/add-equipment">
-            <Button type="primary" icon={<PlusOutlined />}>
-              + Nuevo Equipo
-            </Button>
-          </Link>
+          {permissions.canAddEquipment && (
+            <Link to="/add-equipment">
+              <Button type="primary" icon={<PlusOutlined />}>
+                + Nuevo Equipo
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
       {/* Tabla principal con filas expandibles */}

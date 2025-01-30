@@ -29,6 +29,8 @@ export interface Equipment {
   maintenances?: Maintenance[]; // Mantenimientos realizados
   scheduledMaintenances?: ScheduledMaintenance[]; // Mantenimientos programados
   isActive: boolean
+  createdBy: number, // Usuario que creó el equipo
+  updatedBy: number, // Última persona que lo editó
 }
 
 
@@ -42,10 +44,24 @@ export interface Component {
   scheduledMaintenances?: ScheduledMaintenance[];
   relatedEquipmentId: number; // Relación con el equipo al que pertenece
   isActive: boolean
+  createdBy: number, // Usuario que creó el equipo
+  updatedBy: number, // Última persona que lo editó
 }
 
 
-
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  password: string; // Hashed password for authentication
+  role: "admin" | "usuario" | "operador"; // Roles disponibles
+  createdAt: string; // Fecha de creación
+  updatedAt: string; // Última actualización
+  lastLogin: string; // Último acceso al sistema
+  isActive: boolean; // Estado de la cuenta
+  phoneNumber?: string; // Teléfono del usuario (opcional)
+  profilePicture?: string; // URL de la foto de perfil (opcional)
+}
 
 
 

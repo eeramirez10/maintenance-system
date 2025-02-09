@@ -18,6 +18,7 @@ import { QRCodeSVG as QRCode } from 'qrcode.react';
 import ScheduledMaintenanceForm2 from './ScheduledMaintenanceForm2';
 import { useEquipments } from '../hooks/useEquipments';
 import { useUser } from '../hooks/useUser';
+import { usePermission } from '../hooks/usePermission';
 
 
 interface EquipmentListProps {
@@ -27,74 +28,13 @@ interface EquipmentListProps {
 const EquipmentList: React.FC<EquipmentListProps> = ({
   components,
 }) => {
-  const { user } = useUser(); // Obtener el usuario autenticado
-  const { equipments } = useEquipments()
-  const userRole = user?.role; // Obtener el rol del usuario
-  const userId = user?.id; // Obtener el ID del usuario
+  const { user } = useUser(); 
+  const { equipments, deleteEquipment, sheduleMaintenance, onAddScheduledMaintenance, handleResetValues, handleScheduledChange, handleDeleteScheduled, handleAddScheduled } = useEquipments();
+  const userRole = user?.role; 
+  const userId = user?.id; 
 
-  // Definir permisos basados en roles
-  const permissions = useMemo(() => {
-    const perms = {
-      canView: true, // Todos los roles pueden ver
-      canAddEquipment: false,
-      canEditEquipment: false,
-      canDeleteEquipment: false,
-      canGenerateQR: false,
-      canAddMaintenance: false,
-      canEditMaintenance: false,
-      canDeleteMaintenance: false,
-      canAddComponent: false,
-      canEditComponent: false,
-      canDeleteComponent: false,
-      canAddRepair: false,
-    };
+  const permissions = usePermission({ userRole })
 
-    if (userRole === 'admin') {
-      perms.canAddEquipment = true;
-      perms.canEditEquipment = true;
-      perms.canDeleteEquipment = true;
-      perms.canGenerateQR = true;
-      perms.canAddMaintenance = true;
-      perms.canEditMaintenance = true;
-      perms.canDeleteMaintenance = true;
-      perms.canAddComponent = true;
-      perms.canEditComponent = true;
-      perms.canDeleteComponent = true;
-      perms.canAddRepair = true;
-    } else if (userRole === 'operador') {
-      perms.canAddEquipment = true;
-      perms.canEditEquipment = true;
-      perms.canGenerateQR = true;
-      perms.canAddMaintenance = true;
-      perms.canEditMaintenance = true;
-      perms.canAddComponent = true;
-      perms.canEditComponent = true;
-      // Los operadores no pueden eliminar equipos ni componentes
-    } else if (userRole === 'usuario') {
-      perms.canAddMaintenance = true; // Alta de mantenimientos diarios
-      perms.canAddRepair = true; // Alta de reparaciones
-      perms.canAddComponent = true;
-      perms.canDeleteComponent = true;
-      perms.canGenerateQR = true;
-      // Los usuarios no pueden editar equipos, componentes o eliminarlos
-    }
-
-    return perms;
-  }, [userRole]);
-
-  // Función para verificar si el usuario puede editar un equipo
-  const canEditEquipment = (equipment: Equipment) => {
-    if (userRole === 'admin' || userRole === 'operador') return true;
-    return false;
-  };
-
-  // Función para verificar si el usuario puede eliminar un equipo
-  const canDeleteEquipment = (equipment: Equipment) => {
-    if (userRole === 'admin') return true;
-    return false;
-  };
-
-  // Funciones para manejar el modal del QR
   const [isQRModalVisible, setIsQRModalVisible] = useState(false);
   const [selectedEquipmentIdForQR, setSelectedEquipmentIdForQR] = useState<number | null>(null);
 
@@ -113,7 +53,6 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
     setSelectedEquipmentIdForQR(null);
   };
 
-  // Funciones para manejar el modal de Agregar Mantenimiento Programado
   const [isAddMaintenanceModalVisible, setIsAddMaintenanceModalVisible] = useState(false);
   const [selectedEquipmentIdForMaintenance, setSelectedEquipmentIdForMaintenance] = useState<number | null>(null);
 
@@ -169,9 +108,6 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
     handleResetValues();
   };
 
-  // Función para manejar la eliminación del equipo con permisos
-  const { deleteEquipment, sheduleMaintenance, onAddScheduledMaintenance, handleResetValues, handleScheduledChange, handleDeleteScheduled, handleAddScheduled } = useEquipments();
-
   const handleDeleteEquipmentFunc = (equipmentId: number) => {
     const equipment = equipments.find((eq) => eq.id === equipmentId);
     if (!equipment) {
@@ -179,8 +115,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
       return;
     }
 
-    // Solo admin puede eliminar
-    if (!canDeleteEquipment(equipment)) {
+    if (!permissions.canDeleteEquipment) {
       message.error('No tienes permisos para eliminar este equipo.');
       return;
     }
@@ -192,7 +127,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
     }
   };
 
-  // Filtrar equipos basados en el texto de búsqueda
+  
   const [searchText, setSearchText] = useState<string>('');
   const filteredEquipments = useMemo(() => {
     return equipments.filter((equipment) =>
@@ -383,7 +318,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
       {/* Modal para mostrar el QR */}
       <Modal
         title="Código QR del Equipo"
-        visible={isQRModalVisible}
+        open={isQRModalVisible}
         onOk={handleQROk}
         onCancel={handleQRCancel}
         footer={[

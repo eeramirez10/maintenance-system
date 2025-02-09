@@ -36,12 +36,8 @@ export const useEquipments = (): Props => {
 
   const { equipments, setEquipments } = useContext(EquipmentContext)
   const { user } = useUser()
-
-  // Estado para mantener los mantenimientos programados en el formulario
   const [scheduledMaintenances, setScheduledMaintenances] = useState<ScheduledMaintenance[]>([]);
-
   const [sheduleMaintenance, setSheduleMaintenance] = useState(sheduledMaintenanceinitialState)
-
 
   const handleDeleteScheduled = (index: number) => {
     const updatedMaintenances = [...scheduledMaintenances];
@@ -119,7 +115,6 @@ export const useEquipments = (): Props => {
   const handleAddEquipment = (equipment: Omit<Equipment, 'id'>) => {
     setEquipments([...equipments, { id: Date.now(), ...equipment, isActive: true, createdBy: user.id }]);
   };
-
 
   const onEditEquipment = (editedEquipment:Equipment ) => {
     const equipment = equipments.map((equipment) => equipment.id === editedEquipment.id ? editedEquipment : equipment )

@@ -11,7 +11,6 @@ interface HomeProps {
 const Home: React.FC<HomeProps> = ({ equipments,components }) => {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <h1 className="text-3xl font-bold text-center mb-8">Lista de Equipos</h1>
       {equipments.length > 0 ? (
         <EquipmentList  components={components} />
       ) : (

@@ -268,7 +268,7 @@ const AddEquipment: React.FC = () => {
           </Button>
         </Form.Item>
 
-        <Divider orientation="left">Mantenimientos Realizados</Divider>
+        {/* <Divider orientation="left">Mantenimientos Realizados</Divider>
         {maintenances.map((maintenance, index) => (
           <Card key={index} type="inner" title={`Mantenimiento ${index + 1}`} style={{ marginBottom: 16 }}>
             <Form.Item label="Descripción del Mantenimiento" required>
@@ -410,7 +410,7 @@ const AddEquipment: React.FC = () => {
           <Button type="dashed" onClick={handleAddScheduled} block icon={<PlusOutlined />}>
             Agregar Mantenimiento Programado
           </Button>
-        </Form.Item>
+        </Form.Item> */}
 
         <Form.Item>
           <Button type="primary" onClick={handleSave} block>

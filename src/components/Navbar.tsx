@@ -25,8 +25,11 @@ const Navbar: React.FC = () => {
           <Menu.Item key="2">
             <Link to="/equipments">Equipos</Link>
           </Menu.Item>
-          <Menu.Item key="3">
+          {/* <Menu.Item key="3">
             <Link to="/components">Componentes</Link>
+          </Menu.Item> */}
+          <Menu.Item key="4">
+            <Link to="/reports">Reportes</Link>
           </Menu.Item>
           {/* Agrega más enlaces según sea necesario */}
           <Menu.Item key="user" style={{ marginLeft: "auto" }}>
@@ -34,9 +37,12 @@ const Navbar: React.FC = () => {
               <>
                 <Avatar src={user.profilePicture} style={{ marginRight: 8 }} />
                 {user.name}
-                <Logout />
+            
               </>
             )}
+          </Menu.Item>
+          <Menu.Item>
+            <Logout />
           </Menu.Item>
         </Menu>
       </Header>

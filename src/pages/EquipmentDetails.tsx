@@ -9,6 +9,10 @@ import { calculateRemaining } from '../utils/calculateRemaining';
 import { useEquipments } from '../hooks/useEquipments';
 import { useUser } from '../hooks/useUser';
 import mockUsers from '../mocks/users';
+import { ColumnsType } from 'antd/es/table';
+import { Routine } from '../interface/equipment.type';
+import { PreventiveRoutinesList } from '../components/PreventiveRoutinesList';
+import { CorrectiveRoutinesList } from '../components/CorrectiveRoutinesList';
 
 const { confirm } = Modal;
 
@@ -90,64 +94,10 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ components, onDelet
     },
   ];
 
-  // Configuración de columnas para mantenimientos realizados
-  const maintenanceColumns = [
-    {
-      title: 'Descripción',
-      dataIndex: 'description',
-      key: 'description',
-    },
-    {
-      title: 'Criterio',
-      dataIndex: ['criteria', 'name'],
-      key: 'criteria',
-      render: (text: any) => text || 'No definido',
-    },
-    {
-      title: 'Valor Actual',
-      dataIndex: ['criteria', 'currentValue'],
-      key: 'currentValue',
-      render: (value: any, record: any) =>
-        record.criteria?.type === 'date' ? value : record.criteria?.currentValue || 'No definido',
-    },
-  ];
+  const preventiveRoutines = equipment.routines.filter( (r) => r.routineType === 'preventivo' )
 
-  // Configuración de columnas para mantenimientos programados
-  const scheduledMaintenanceColumns = [
-    {
-      title: 'Descripción',
-      dataIndex: 'description',
-      key: 'description',
-    },
-    {
-      title: 'Criterio',
-      dataIndex: ['criteria', 'name'],
-      key: 'criteria',
-      render: (text: any) => text || 'No definido',
-    },
-    {
-      title: 'Valor Actual',
-      dataIndex: ['criteria', 'currentValue'],
-      key: 'currentValue',
-      render: (value: any, record: any) =>
-        record.criteria?.type === 'date' ? value : record.criteria?.currentValue || 'No definido',
-    },
-    {
-      title: 'Rango',
-      dataIndex: ['criteria', 'minValue'],
-      key: 'range',
-      render: (_: any, record: any) =>
-        record.criteria?.type === 'number'
-          ? `Min: ${record.criteria.minValue || 'N/A'}, Max: ${record.criteria.maxValue || 'N/A'}`
-          : '-',
-    },
-    {
-      title: 'Estado',
-      dataIndex: 'criteria',
-      key: 'status',
-      render: (criteria: any) => calculateRemaining(criteria),
-    },
-  ];
+  const correctiveRoutines = equipment.routines.filter( (r) => r.routineType === 'correctivo' )
+
 
   return (
     <Card
@@ -223,33 +173,23 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ components, onDelet
         )}
       </Card>
 
-      {/* Mantenimientos Realizados */}
-      <Card title="Mantenimientos Realizados" style={{ marginTop: '20px' }}>
-        {equipment.maintenances?.length > 0 ? (
-          <Table
-            columns={maintenanceColumns}
-            dataSource={equipment.maintenances}
-            rowKey={(record) => record.id || record.description} // Ajusta según la estructura de tus mantenimientos
-            pagination={false}
-            bordered
-          />
+
+
+      Mantenimientos Programados
+      <Card title="Rutinas Preventivas" style={{ marginTop: '20px' }}>
+        {preventiveRoutines?.length > 0 ? (
+          <PreventiveRoutinesList preventiveRoutines={preventiveRoutines} />
         ) : (
-          <p>No hay mantenimientos registrados.</p>
+          <p>No hay Rutinas registradas.</p>
         )}
       </Card>
 
-      {/* Mantenimientos Programados */}
-      <Card title="Mantenimientos Programados" style={{ marginTop: '20px' }}>
-        {equipment.scheduledMaintenances?.length > 0 ? (
-          <Table
-            columns={scheduledMaintenanceColumns}
-            dataSource={equipment.scheduledMaintenances}
-            rowKey={(record) => record.id || record.description} // Ajusta según la estructura de tus mantenimientos programados
-            pagination={false}
-            bordered
-          />
+
+      <Card title="Rutinas Correctivas" style={{ marginTop: '20px' }}>
+        {correctiveRoutines?.length > 0 ? (
+          <CorrectiveRoutinesList correctiveRoutines={correctiveRoutines} />
         ) : (
-          <p>No hay mantenimientos programados registrados.</p>
+          <p>No hay Rutinas registradas.</p>
         )}
       </Card>
     </Card>

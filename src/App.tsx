@@ -22,6 +22,7 @@ import { AuthProvider } from './context/AuthContext';
 import { UserProvider } from './context/UserContext';
 import ProtectedRoute from './ProtectedRoute';
 import Login from './pages/LoginPage';
+import { Reports } from './pages/Reports';
 
 
 const App: React.FC = () => {
@@ -94,6 +95,7 @@ const App: React.FC = () => {
                     <Navbar />
                     <Routes>
                       <Route path="/" element={<Dashboard equipments={equipments} />} />
+                      <Route path="/reports" element={<Reports />} />
                       <Route path="/equipments" element={<Home equipments={equipments} components={components} />} />
                       <Route path="/add-equipment" element={<AddEquipment />} />
                       <Route path="/equipment/:id" element={<EquipmentDetails components={components} onDeleteEquipment={handleDeleteEquipment} />} />

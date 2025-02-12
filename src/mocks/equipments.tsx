@@ -1,30 +1,22 @@
-import { Equipment } from '../types';
+// mockEquipments.ts
+
+import { Equipment } from "../interface/equipment.type";
 
 const mockEquipments: Equipment[] = [
   {
     id: 1,
     name: 'Compresor Industrial',
     type: 'Industrial',
-    image: 'https://america.sullair.com/sites/default/files/2021-04/ZE1_1461_1349x900x75.jpg',
+    image:
+      'https://america.sullair.com/sites/default/files/2021-04/ZE1_1461_1349x900x75.jpg',
     customFields: [
       { name: 'Número de Serie', value: 'C-12345' },
       { name: 'Ubicación', value: 'Planta 1' },
     ],
-    maintenances: [
-      {
-        description: 'Cambio de filtro de aire',
-        criteria: {
-          name: 'Horas de operación',
-          type: 'number',
-          currentValue: 1500,
-          minValue: 1000,
-          maxValue: 2000,
-        },
-      },
-    ],
-    scheduledMaintenances: [
+    routines: [
       {
         description: 'Revisión de válvulas',
+        routineType: 'preventivo',
         criteria: {
           name: 'Horas de operación',
           type: 'number',
@@ -32,79 +24,84 @@ const mockEquipments: Equipment[] = [
           minValue: 2000,
           maxValue: 2500,
         },
+        priorityPercentage: 70,
+        estimatedTime: 120,
+        actualTime: 110,
+        plannedDowntime: 60,
+        actualDowntime: 55,
+        photoBefore: '',
+        photoAfter: '',
       },
       {
-        description: 'Inspección general',
+        description: 'Reparación de compresor',
+        routineType: 'correctivo',
+        failureCategory: 'Mecánica',
+        failureDescription: 'Fuga en la válvula principal',
+        repairCost: 500,
+        repairTime: 180,
         criteria: {
-          name: 'Fecha de inspección',
+          name: 'Inspección adicional',
           type: 'date',
-          currentValue: '2025-02-15',
+          currentValue: '2025-02-20',
         },
+        failureStartDate: '2025-02-18',
+        failureEndDate: '2025-02-20',
+        photoBefore: '',
+        photoAfter: '',
       },
     ],
+    status: 'operacion',
     isActive: true,
-    createdBy: 2, // Usuario que creó el equipo
-    updatedBy: 1, // Última persona que lo editó
+    createdBy: 2,
+    updatedBy: 1,
   },
   {
     id: 2,
     name: 'Caldera de Vapor',
     type: 'Industrial',
-    image: 'https://vaprest.com/wp-content/uploads/2023/07/calderas-industriales-vapor.jpg',
+    image:
+      'https://vaprest.com/wp-content/uploads/2023/07/calderas-industriales-vapor.jpg',
     customFields: [
       { name: 'Capacidad', value: '2000L' },
       { name: 'Presión Máxima', value: '15 bar' },
     ],
-    maintenances: [
-      {
-        description: 'Cambio de juntas',
-        criteria: {
-          name: 'Ciclos de operación',
-          type: 'number',
-          currentValue: 3000,
-          minValue: 2500,
-          maxValue: 5000,
-        },
-      },
-    ],
-    scheduledMaintenances: [
+    routines: [
       {
         description: 'Revisión de seguridad',
+        routineType: 'preventivo',
         criteria: {
           name: 'Fecha de revisión',
           type: 'date',
           currentValue: '2025-03-01',
         },
+        priorityPercentage: 60,
+        estimatedTime: 120,
+        actualTime: 110,
+        plannedDowntime: 60,
+        actualDowntime: 65,
+        photoBefore: '',
+        photoAfter: '',
       },
     ],
+    status: 'operacion',
     isActive: false,
-    createdBy: 1, // Usuario admin que creó el equipo
-    updatedBy: 2, // Última persona que lo editó
+    createdBy: 1,
+    updatedBy: 2,
   },
   {
     id: 3,
     name: 'Motor Eléctrico',
     type: 'Eléctrico',
-    image: 'https://hvhindustrial.com/images/frontend_images/blogs/1592499808Electric-Motor.jpg',
+    image:
+      'https://hvhindustrial.com/images/frontend_images/blogs/1592499808Electric-Motor.jpg',
     customFields: [
       { name: 'Potencia', value: '50 HP' },
       { name: 'RPM', value: '1500' },
     ],
-    maintenances: [
-      {
-        description: 'Cambio de aceite',
-        criteria: {
-          name: 'Kilómetros recorridos',
-          type: 'number',
-          currentValue: 12000,
-          minValue: 10000,
-          maxValue: 15000,
-        },
-      },
-    ],
-    scheduledMaintenances: [
+    routines: [
       {
         description: 'Ajuste de rotor',
+        routineType: 'preventivo',
         criteria: {
           name: 'Horas de uso',
           type: 'number',
@@ -112,36 +109,34 @@ const mockEquipments: Equipment[] = [
           minValue: 15000,
           maxValue: 20000,
         },
+        priorityPercentage: 70,
+        estimatedTime: 60,
+        actualTime: 75,
+        plannedDowntime: 60,
+        actualDowntime: 80,
+        photoBefore: '',
+        photoAfter: '',
       },
     ],
+    status: 'falla',
     isActive: true,
-    createdBy: 3, // Usuario operador
-    updatedBy: 3, // Última persona que lo editó
+    createdBy: 3,
+    updatedBy: 3,
   },
   {
     id: 4,
     name: 'Vehículo de Empresa',
     type: 'Automóvil',
-    image: 'https://es-commerce.com/imagenes/Furgoneta-como-veh%C3%ADculo-de-empresa.jpg',
+    image:
+      'https://es-commerce.com/imagenes/Furgoneta-como-veh%C3%ADculo-de-empresa.jpg',
     customFields: [
       { name: 'Placas', value: 'ABC-123' },
       { name: 'Marca', value: 'Toyota' },
     ],
-    maintenances: [
-      {
-        description: 'Cambio de llantas',
-        criteria: {
-          name: 'Kilómetros recorridos',
-          type: 'number',
-          currentValue: 25000,
-          minValue: 20000,
-          maxValue: 30000,
-        },
-      },
-    ],
-    scheduledMaintenances: [
+    routines: [
       {
         description: 'Servicio general',
+        routineType: 'preventivo',
         criteria: {
           name: 'Kilómetros recorridos',
           type: 'number',
@@ -149,19 +144,140 @@ const mockEquipments: Equipment[] = [
           minValue: 30000,
           maxValue: 40000,
         },
+        priorityPercentage: 40,
+        estimatedTime: 180,
+        actualTime: 200,
+        plannedDowntime: 180,
+        actualDowntime: 210,
+        photoBefore: '',
+        photoAfter: '',
       },
       {
-        description: 'Revisión técnica',
+        description: 'Reparación de frenos',
+        routineType: 'correctivo',
+        failureCategory: 'Mecánica',
+        failureDescription: 'Desgaste excesivo en pastillas de freno',
+        repairTime: 120,
+        repairCost: 200,
         criteria: {
-          name: 'Fecha de revisión',
+          name: 'Fecha de diagnóstico',
           type: 'date',
-          currentValue: '2025-04-01',
+          currentValue: '2025-04-10',
         },
+        failureStartDate: '2025-04-09',
+        failureEndDate: '2025-04-10',
+        photoBefore: '',
+        photoAfter: '',
       },
     ],
+    status: 'operacion',
     isActive: true,
-    createdBy: 1, // Usuario admin
-    updatedBy: 2, // Última persona que lo editó
+    createdBy: 1,
+    updatedBy: 2,
+  },
+  {
+    id: 5,
+    name: 'Torre de Enfriamiento',
+    type: 'Industrial',
+    image:
+      'https://www.icestorm.es/wp-content/uploads/2021/10/torre-evaporativa-cooling-tower.jpg',
+    customFields: [
+      { name: 'Fabricante', value: 'CoolingSys' },
+      { name: 'Altura', value: '10m' },
+    ],
+    routines: [
+      {
+        description: 'Cambio de Filtro',
+        routineType: 'preventivo',
+        criteria: {
+          name: 'Semanas de uso',
+          type: 'number',
+          currentValue: 10,
+          minValue: 8,
+          maxValue: 12,
+        },
+        priorityPercentage: 80,
+        estimatedTime: 90,
+        actualTime: 100,
+        plannedDowntime: 60,
+        actualDowntime: 70,
+        photoBefore: '',
+        photoAfter: '',
+      },
+      {
+        description: 'Reparación de Bomba',
+        routineType: 'correctivo',
+        failureCategory: 'Mecánica',
+        failureDescription: 'Bomba principal averiada',
+        repairTime: 180,
+        repairCost: 700,
+        criteria: {
+          name: 'Inspección de bomba',
+          type: 'date',
+          currentValue: '2025-06-15',
+        },
+        failureStartDate: '2025-06-14',
+        failureEndDate: '2025-06-16',
+        photoBefore: '',
+        photoAfter: '',
+      },
+    ],
+    status: 'operacion',
+    isActive: true,
+    createdBy: 4,
+    updatedBy: 4,
+  },
+  {
+    id: 6,
+    name: 'Sistema Hidráulico',
+    type: 'Hidráulico',
+    image:
+      'https://www.sciencedirect.com/science/article/pii/S0955598619305069/pdfft?md5=6830389b640cf572ba6af22b30b36bc6&pid=1-s2.0-S0955598619305069-main.pdf',
+    customFields: [
+      { name: 'Capacidad', value: '1500 L' },
+      { name: 'Presión Máx', value: '2000 PSI' },
+    ],
+    routines: [
+      {
+        description: 'Revisión de Presiones',
+        routineType: 'preventivo',
+        criteria: {
+          name: 'Horas de trabajo',
+          type: 'number',
+          currentValue: 3000,
+          minValue: 2000,
+          maxValue: 4000,
+        },
+        priorityPercentage: 50,
+        estimatedTime: 60,
+        actualTime: 60,
+        plannedDowntime: 30,
+        actualDowntime: 35,
+        photoBefore: '',
+        photoAfter: '',
+      },
+      {
+        description: 'Cambio de Mangueras',
+        routineType: 'correctivo',
+        failureCategory: 'Hidráulica',
+        failureDescription: 'Fuga en mangueras principales',
+        repairTime: 90,
+        repairCost: 300,
+        criteria: {
+          name: 'Fecha de diagnóstico',
+          type: 'date',
+          currentValue: '2025-07-10',
+        },
+        failureStartDate: '2025-07-09',
+        failureEndDate: '2025-07-10',
+        photoBefore: '',
+        photoAfter: '',
+      },
+    ],
+    status: 'falla',
+    isActive: true,
+    createdBy: 4,
+    updatedBy: 5,
   },
 ];
 

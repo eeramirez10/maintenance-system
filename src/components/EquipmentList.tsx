@@ -15,10 +15,13 @@ import {
 import { SearchOutlined, PlusOutlined, DownOutlined } from '@ant-design/icons';
 import { Equipment, Component } from '../types';
 import { QRCodeSVG as QRCode } from 'qrcode.react';
-import ScheduledMaintenanceForm2 from './ScheduledMaintenanceForm2';
 import { useEquipments } from '../hooks/useEquipments';
 import { useUser } from '../hooks/useUser';
 import { usePermission } from '../hooks/usePermission';
+import RoutineForm from './RoutineForm';
+import { useRoutine } from '../hooks/useRoutine';
+import { Rountine } from '../interface/equipment.type';
+
 
 
 interface EquipmentListProps {
@@ -28,10 +31,10 @@ interface EquipmentListProps {
 const EquipmentList: React.FC<EquipmentListProps> = ({
   components,
 }) => {
-  const { user } = useUser(); 
-  const { equipments, deleteEquipment, sheduleMaintenance, onAddScheduledMaintenance, handleResetValues, handleScheduledChange, handleDeleteScheduled, handleAddScheduled } = useEquipments();
-  const userRole = user?.role; 
-  const userId = user?.id; 
+  const { user } = useUser();
+  const { equipments, deleteEquipment,  addRoutine } = useEquipments();
+  const { routine:routineMaintenance, handleRoutineChange } = useRoutine()
+  const userRole = user?.role;
 
   const permissions = usePermission({ userRole })
 
@@ -59,7 +62,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
   const showAddMaintenanceModal = (id: number) => {
     setSelectedEquipmentIdForMaintenance(id);
     setIsAddMaintenanceModalVisible(true);
-    handleResetValues(); // Resetear mantenimientos al abrir el modal
+    // Resetear mantenimientos al abrir el modal
   };
 
   const handleAddMaintenanceOk = () => {
@@ -127,7 +130,15 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
     }
   };
 
-  
+  const handleOnSaveRoutine = ( rountine: Rountine) => {
+
+    if(!selectedEquipmentIdForMaintenance) return
+    
+    addRoutine(selectedEquipmentIdForMaintenance, rountine)
+
+  }
+
+
   const [searchText, setSearchText] = useState<string>('');
   const filteredEquipments = useMemo(() => {
     return equipments.filter((equipment) =>
@@ -175,7 +186,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
       {permissions.canAddMaintenance && (
         <Menu.Item key="maintenance">
           <Button type="primary" icon={<PlusOutlined />} onClick={() => showAddMaintenanceModal(record.id)} block>
-            Agregar Mtto Prog
+            Agregar Rutina
           </Button>
         </Menu.Item>
       )}
@@ -338,20 +349,23 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
 
       {/* Modal para Agregar Mantenimiento Programado */}
       <Modal
-        title="Agregar Mantenimiento Programado"
+        title="Agregar Rutina"
+        okButtonProps={{
+          ghost:true
+        }}
         open={isAddMaintenanceModalVisible}
-        onOk={handleAddMaintenanceOk}
         onCancel={handleAddMaintenanceCancel}
-        okText="Agregar"
         cancelText="Cancelar"
         width={800}
       >
-        <h2 className="text-xl font-bold mt-6">Mantenimientos Programados</h2>
+        <h2 className="text-xl font-bold mt-6">Rutinas</h2>
 
-        <ScheduledMaintenanceForm2 handleScheduledChange={handleScheduledChange} maintenance={sheduleMaintenance} />
+        <RoutineForm onSave={handleOnSaveRoutine} />
       </Modal>
     </div>
   );
+
+
 };
 
 export default EquipmentList;

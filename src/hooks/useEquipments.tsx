@@ -4,7 +4,7 @@ import { useContext } from 'react'
 
 import EquipmentContext from '../context/EquipmentContext'
 import { useUser } from './useUser';
-import { Equipment, Rountine } from '../interface/equipment.type';
+import { Equipment, Routine } from '../interface/equipment.type';
 import { message } from 'antd';
 
 interface Props {
@@ -12,7 +12,8 @@ interface Props {
   deleteEquipment: (equipmentId: number) => void
   handleAddEquipment: (equipment: Omit<Equipment, 'id'>) => void
   onEditEquipment: (editedEquipment: Equipment) => void
-  addRoutine: (equipmentId: number, rountine: Rountine) => void
+  addRoutine: (equipmentId: number, rountine: Routine) => void
+  getEquipmentById: (id:number) => Equipment
 }
 
 
@@ -58,12 +59,17 @@ export const useEquipments = (): Props => {
     setEquipments(addRountine)
   }
 
+  const getEquipmentById = (id: number) => {
+    return equipments.find(eq => eq.id === id)
+  }
+
   return {
     equipments,
     deleteEquipment,
     handleAddEquipment,
     onEditEquipment,
-    addRoutine
+    addRoutine,
+    getEquipmentById
 
   }
 }

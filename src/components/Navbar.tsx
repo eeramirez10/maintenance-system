@@ -25,11 +25,14 @@ const Navbar: React.FC = () => {
           <Menu.Item key="2">
             <Link to="/equipments">Equipos</Link>
           </Menu.Item>
-          {/* <Menu.Item key="3">
+          <Menu.Item key="3">
             <Link to="/components">Componentes</Link>
-          </Menu.Item> */}
+          </Menu.Item>
           <Menu.Item key="4">
             <Link to="/reports">Reportes</Link>
+          </Menu.Item>
+          <Menu.Item key="5">
+            <Link to="/warehouse">Almacen</Link>
           </Menu.Item>
           {/* Agrega más enlaces según sea necesario */}
           <Menu.Item key="user" style={{ marginLeft: "auto" }}>

@@ -23,6 +23,7 @@ import { UserProvider } from './context/UserContext';
 import ProtectedRoute from './ProtectedRoute';
 import Login from './pages/LoginPage';
 import { Reports } from './pages/Reports';
+import StoragePage from './pages/StoragePage';
 
 
 const App: React.FC = () => {
@@ -107,6 +108,7 @@ const App: React.FC = () => {
                       <Route path="/components" element={<ComponentListPage components={components} onDelete={handleDeleteComponent} />} />
                       <Route path="/component/:id" element={<ComponentDetails components={components} equipments={equipments} />} />
                       <Route path="/edit-component/:id" element={<EditComponent components={components} onUpdate={handleUpdateComponent} />} />
+                      <Route path="/warehouse" element={<StoragePage />} />
                       {/* Agrega aquí más rutas protegidas si es necesario */}
                     </Routes>
                   </>

@@ -4,8 +4,9 @@ import { useContext } from 'react'
 
 import EquipmentContext from '../context/EquipmentContext'
 import { useUser } from './useUser';
-import { Equipment, Routine } from '../interface/equipment.type';
+import { Equipment, Routine, Step } from '../interface/equipment.type';
 import { message } from 'antd';
+import { v4 as uuidv4 } from 'uuid';
 
 interface Props {
   equipments: Equipment[]
@@ -13,7 +14,9 @@ interface Props {
   handleAddEquipment: (equipment: Omit<Equipment, 'id'>) => void
   onEditEquipment: (editedEquipment: Equipment) => void
   addRoutine: (equipmentId: number, rountine: Routine) => void
-  getEquipmentById: (id:number) => Equipment
+  getEquipmentById: (id: number) => Equipment
+  addStep: (step: Step, equipmentId: string, routineId: string) => void
+
 }
 
 
@@ -37,7 +40,7 @@ export const useEquipments = (): Props => {
 
   }
 
-  const addRoutine = (equipmentId: number, rountine: Rountine) => {
+  const addRoutine = (equipmentId: number, rountine: Routine) => {
 
     const findEquipment = equipments.find(equipment => equipment.id === equipmentId)
 
@@ -59,7 +62,32 @@ export const useEquipments = (): Props => {
     setEquipments(addRountine)
   }
 
-  const getEquipmentById = (id: number) => {
+  const addStep = (step: Step, equipmentId: string, routineId: string) => {
+
+    const newStep = {
+      ...step,
+      id: uuidv4()
+    }
+
+    const indexEquipment = equipments.findIndex(eq => eq.id === equipmentId)
+
+    const indexRoutine = equipments[indexEquipment].routines.findIndex(r => r.id === routineId)
+
+    const newEquipments = [...equipments]
+
+    const equipment = newEquipments[indexEquipment]
+
+    const routine = equipment.routines[indexRoutine]
+
+    routine.steps = [...routine.steps, newStep]
+
+
+    setEquipments(newEquipments)
+
+
+  }
+
+  const getEquipmentById = (id: string) => {
     return equipments.find(eq => eq.id === id)
   }
 
@@ -69,7 +97,8 @@ export const useEquipments = (): Props => {
     handleAddEquipment,
     onEditEquipment,
     addRoutine,
-    getEquipmentById
+    getEquipmentById,
+    addStep
 
   }
 }

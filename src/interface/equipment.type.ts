@@ -16,6 +16,7 @@ export interface RoutineCriteria {
  * Puede ser PREVENTIVO o CORRECTIVO.
  */
 export interface Routine {
+  id: string
   description: string;
   routineType?: 'preventivo' | 'correctivo';
 
@@ -59,17 +60,59 @@ export interface CustomField {
  *  - Solo se conserva "routines"
  */
 export interface Equipment {
-  id: number;
+  id: string;
   name: string;
   type: string;
   image: string;
   customFields: CustomField[];
 
-  routines: Routine[];  // Listado de rutinas (preventivas o correctivas)
+  routines: RoutineGroup[];  // Listado de rutinas (preventivas o correctivas)
 
   /** Estado del equipo (operación o falla) */
   status: 'operacion' | 'falla';
   isActive: boolean;
   createdBy: number;
   updatedBy: number;
+}
+
+export interface RoutineGroup {
+  id?: string;
+  name: string;            // Nombre de la rutina (grupo)
+  description: string;     // Descripción general de la rutina
+  creationDate: string;    // Fecha de creación
+  steps: Step[];           // Pasos detallados
+}
+
+export interface Step {
+  id: string
+  stepDescription: string;
+  routineType?: 'preventivo' | 'correctivo';
+
+  /** Criterios (fechas, valores numéricos, etc.) */
+  criteria?: RoutineCriteria;
+
+  // ----- PREVENTIVO -----
+  priorityPercentage?: number;
+  estimatedTime?: number;    // tiempo estimado (min)
+  actualTime?: number;       // tiempo real (min)
+  plannedDowntime?: number;  // Paro planeado (min)
+  actualDowntime?: number;   // Paro real (min) - preventivo
+
+  // ----- CORRECTIVO -----
+  failureCategory?: string;
+  failureDescription?: string;
+  repairCost?: number;
+  repairTime?: number;       // tiempo de reparación (min)
+
+  /**
+   * Fechas para saber el tiempo fuera de operación en el correctivo
+   * (para calcular la diferencia entre inicio y fin de la falla).
+   */
+  failureStartDate?: string; // Fecha de inicio de la falla (yyyy-mm-dd)
+  failureEndDate?: string;   // Fecha de reparación (yyyy-mm-dd)
+
+  // ----- Fotos -----
+  photoBefore?: string;
+  photoAfter?: string;
+  // ... etc.
 }

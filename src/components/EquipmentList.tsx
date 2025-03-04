@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import {
   Table,
   Button,
-  Space,
   Modal,
   Badge,
   Input,
@@ -13,33 +12,38 @@ import {
   Dropdown,
 } from 'antd';
 import { SearchOutlined, PlusOutlined, DownOutlined } from '@ant-design/icons';
-import { Equipment, Component } from '../types';
 import { QRCodeSVG as QRCode } from 'qrcode.react';
 import { useEquipments } from '../hooks/useEquipments';
 import { useUser } from '../hooks/useUser';
 import { usePermission } from '../hooks/usePermission';
-import RoutineForm from './RoutineForm';
-import { useRoutine } from '../hooks/useRoutine';
-import { Rountine } from '../interface/equipment.type';
+import { Equipment, Routine, RoutineGroup, Step } from '../interface/equipment.type';
+import CreateRoutineForm from './CreateRoutineForm';
+import AddStepForm from './AddStepForm';
 
 
 
-interface EquipmentListProps {
-  components: Component[];
-}
 
-const EquipmentList: React.FC<EquipmentListProps> = ({
-  components,
-}) => {
+
+const EquipmentList = () => {
   const { user } = useUser();
-  const { equipments, deleteEquipment,  addRoutine } = useEquipments();
-  const { routine:routineMaintenance, handleRoutineChange } = useRoutine()
+  const { equipments, deleteEquipment, addRoutine, addStep } = useEquipments();
+
+  const [selectedRoutine, setSelectedRoutine] = useState<String | null>()
+
   const userRole = user?.role;
 
   const permissions = usePermission({ userRole })
 
   const [isQRModalVisible, setIsQRModalVisible] = useState(false);
   const [selectedEquipmentIdForQR, setSelectedEquipmentIdForQR] = useState<number | null>(null);
+
+  const [openModalSteps, setOpenModalSteps] = useState(false)
+
+
+  const handleStepModalCancel = () => {
+    setOpenModalSteps(!openModalSteps)
+  }
+
 
   const showQRModal = (id: number) => {
     setSelectedEquipmentIdForQR(id);
@@ -57,53 +61,24 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
   };
 
   const [isAddMaintenanceModalVisible, setIsAddMaintenanceModalVisible] = useState(false);
-  const [selectedEquipmentIdForMaintenance, setSelectedEquipmentIdForMaintenance] = useState<number | null>(null);
+  const [selectedEquipmentIdForMaintenance, setSelectedEquipmentIdForMaintenance] = useState<String | null>(null);
 
-  const showAddMaintenanceModal = (id: number) => {
+  const showAddMaintenanceModal = (id: string) => {
     setSelectedEquipmentIdForMaintenance(id);
     setIsAddMaintenanceModalVisible(true);
     // Resetear mantenimientos al abrir el modal
   };
 
-  const handleAddMaintenanceOk = () => {
-    const maintenance = sheduleMaintenance;
-    if (!maintenance.description) {
-      message.error(`Por favor ingresa una descripción para el mantenimiento.`);
-      return;
-    }
-    if (!maintenance.criteria?.type) {
-      message.error(`Por favor selecciona el tipo de criterio para el mantenimiento.`);
-      return;
-    }
-    if (maintenance.criteria.type === 'date') {
-      if (!maintenance.criteria.currentValue) {
-        message.error(`Por favor ingresa la fecha de inspección para el mantenimiento.`);
-        return;
-      }
-    }
-    if (maintenance.criteria.type === 'number') {
-      if (
-        maintenance.criteria.currentValue === undefined ||
-        maintenance.criteria.minValue === undefined ||
-        maintenance.criteria.maxValue === undefined
-      ) {
-        message.error(`Por favor ingresa todos los valores numéricos para el mantenimiento.`);
-        return;
-      }
-      if (maintenance.criteria.maxValue <= maintenance.criteria.currentValue) {
-        message.error(`El valor máximo debe ser mayor que el valor actual para el mantenimiento.`);
-        return;
-      }
-    }
+  const showAddStepModal = (id: string) => {
+    setSelectedRoutine(id)
+    setOpenModalSteps(true)
+  }
 
-    if (selectedEquipmentIdForMaintenance !== null) {
-      onAddScheduledMaintenance(selectedEquipmentIdForMaintenance, sheduleMaintenance);
-      message.success('Mantenimientos programados agregados exitosamente.');
-    }
-    setIsAddMaintenanceModalVisible(false);
-    setSelectedEquipmentIdForMaintenance(null);
-    handleResetValues(); // Resetear mantenimientos después de agregar
-  };
+  const handleAddStepCancel = () => {
+    setSelectedRoutine(null)
+    setOpenModalSteps(false)
+  }
+
 
   const handleAddMaintenanceCancel = () => {
     setIsAddMaintenanceModalVisible(false);
@@ -130,16 +105,21 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
     }
   };
 
-  const handleOnSaveRoutine = ( rountine: Rountine) => {
+  const handleOnSaveRoutine = (rountine: Routine) => {
 
-    if(!selectedEquipmentIdForMaintenance) return
-    
+    if (!selectedEquipmentIdForMaintenance) return
+
     addRoutine(selectedEquipmentIdForMaintenance, rountine)
 
   }
 
+  const handleOnSaveStep = (step: Step) => {
+
+    addStep(step,selectedEquipmentIdForMaintenance, selectedRoutine  )
+  }
 
   const [searchText, setSearchText] = useState<string>('');
+
   const filteredEquipments = useMemo(() => {
     return equipments.filter((equipment) =>
       equipment.name.toLowerCase().includes(searchText.toLowerCase())
@@ -243,44 +223,148 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
     },
   ];
 
-  // Función para expandir filas y mostrar componentes relacionados
-  const expandedRowRender = (record: Equipment) => {
-    // Filtrar componentes relacionados con el equipo actual
-    const relatedComponents = components.filter(
-      (component) => component.relatedEquipmentId === record.id
-    );
+  // // Función para expandir filas y mostrar componentes relacionados
+  // const expandedRowRender = (record: Equipment) => {
+  //   // Filtrar componentes relacionados con el equipo actual
+  //   const relatedComponents = components.filter(
+  //     (component) => component.relatedEquipmentId === record.id
+  //   );
+
+  //   return (
+  //     <Table
+  //       columns={[
+  //         {
+  //           title: 'Nombre del Componente',
+  //           dataIndex: 'name',
+  //           key: 'name',
+  //           width: '40%',
+  //         },
+  //         {
+  //           title: 'Tipo',
+  //           dataIndex: 'type',
+  //           key: 'type',
+  //           width: '30%',
+  //         },
+  //         {
+  //           title: 'Acciones',
+  //           key: 'actions',
+  //           render: (_: any, component: Component) => (
+  //             <Space size="middle">
+  //               <Link to={`/component/${component.id}`}>
+  //                 <Button type="default">Ver Componente</Button>
+  //               </Link>
+  //             </Space>
+  //           ),
+  //           width: '30%',
+  //         },
+  //       ]}
+  //       dataSource={relatedComponents}
+  //       rowKey="id"
+  //       pagination={false} // Sin paginación para la tabla interna
+  //     />
+  //   );
+  // };
+
+  const expandedRowRenderSteps = (record: RoutineGroup) => {
+
+    const steps = record.steps || []
+
+    const stepColumns = [
+      {
+        title: 'Descripcion',
+        dataIndex: 'stepDescription',
+        key: 'stepDescription',
+      },
+      {
+        title: 'Tipo',
+        dataIndex: 'routineType',
+        key: 'routineType',
+      },
+      {
+        title: 'Criterio',
+        dataIndex: 'criteria.name',
+        key: 'criteria.name',
+        render:(_:any, record: Step) => record.criteria?.name 
+      },
+      {
+        title: 'Valor Actual',
+        dataIndex: 'criteria.currentValue',
+        key: 'criteria.currentValue',
+        render:(_:any, record: Step) => record.criteria?.currentValue 
+
+      },
+      {
+        title: 'Prioridad',
+        dataIndex: 'priorityPercentage',
+        key: 'priorityPercentage',
+      },
+
+    ]
 
     return (
       <Table
-        columns={[
-          {
-            title: 'Nombre del Componente',
-            dataIndex: 'name',
-            key: 'name',
-            width: '40%',
-          },
-          {
-            title: 'Tipo',
-            dataIndex: 'type',
-            key: 'type',
-            width: '30%',
-          },
-          {
-            title: 'Acciones',
-            key: 'actions',
-            render: (_: any, component: Component) => (
-              <Space size="middle">
-                <Link to={`/component/${component.id}`}>
-                  <Button type="default">Ver Componente</Button>
-                </Link>
-              </Space>
-            ),
-            width: '30%',
-          },
-        ]}
-        dataSource={relatedComponents}
-        rowKey="id"
-        pagination={false} // Sin paginación para la tabla interna
+      columns={stepColumns}
+      dataSource={steps}
+      rowKey={(record) => record.stepDescription} // o un ID único si lo tienes
+      pagination={false}
+      bordered
+ 
+    />
+
+    )
+  }
+
+  const expandedRowRender = (record: Equipment) => {
+    // Extraemos las rutinas
+    const routineGroups = record.routines || [];
+
+    // Definimos las columnas para la tabla de rutinas (RoutineGroup)
+    const routineColumns = [
+      {
+        title: 'Nombre de la Rutina',
+        dataIndex: 'name',
+        key: 'name',
+      },
+      {
+        title: 'Descripción',
+        dataIndex: 'description',
+        key: 'description',
+      },
+      {
+        title: 'Fecha de Creación',
+        dataIndex: 'creationDate',
+        key: 'creationDate',
+      },
+      // Ejemplo: mostrar cuántos pasos tiene la rutina
+      {
+        title: 'Número de Pasos',
+        key: 'stepsCount',
+        render: (routine: RoutineGroup) => routine.steps?.length || 0,
+      },
+      {
+        title: 'Agregar paso',
+
+        render: (routine: RoutineGroup) => (
+          <Button
+            onClick={() => showAddStepModal(routine?.id ?? '')}
+          > Agregar paso</Button>
+        ),
+      },
+    ];
+
+    
+    return (
+      <Table
+        columns={routineColumns}
+        dataSource={routineGroups}
+        rowKey={(routine) => routine.name} // o un ID único si lo tienes
+        pagination={false}
+        expandable={{
+          expandedRowRender: expandedRowRenderSteps,
+          rowExpandable: (record) => record.steps.length > 0
+        }}
+        style={{ backgroundColor: '#fcfcfc' }}
+        bordered
       />
     );
   };
@@ -314,9 +398,14 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
         rowKey="id"
         expandable={{
           expandedRowRender, // Filas expandibles
-          rowExpandable: (record) =>
-            components.some((component) => component.relatedEquipmentId === record.id), // Expandible solo si tiene componentes relacionados
+          rowExpandable: (record) => record.routines.length > 0, 
+          onExpand: (expanded, record) =>{
+            const equipmentId = expanded ? record.id : null
+
+            setSelectedEquipmentIdForMaintenance(equipmentId)
+          }
         }}
+       
         pagination={{ pageSize: 5 }} // Paginación de la tabla principal
         bordered
         locale={{
@@ -351,7 +440,7 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
       <Modal
         title="Agregar Rutina"
         okButtonProps={{
-          ghost:true
+          ghost: true
         }}
         open={isAddMaintenanceModalVisible}
         onCancel={handleAddMaintenanceCancel}
@@ -360,7 +449,28 @@ const EquipmentList: React.FC<EquipmentListProps> = ({
       >
         <h2 className="text-xl font-bold mt-6">Rutinas</h2>
 
-        <RoutineForm onSave={handleOnSaveRoutine} />
+        <CreateRoutineForm onSave={handleOnSaveRoutine} />
+
+      </Modal>
+
+
+      <Modal
+        title="Agregar pasos a rutina"
+        okButtonProps={{
+          ghost: true
+        }}
+        open={openModalSteps}
+        onCancel={handleAddStepCancel}
+        cancelText="Cancelar"
+        width={800}
+      >
+        <h2 className="text-xl font-bold mt-6">Rutinas</h2>
+        {/* <RoutineGroupForm onSave={handleOnSaveRoutine} /> */}
+
+        <AddStepForm onSave={handleOnSaveStep} onCancel={function (): void {
+          throw new Error('Function not implemented.');
+        } } />
+
       </Modal>
     </div>
   );

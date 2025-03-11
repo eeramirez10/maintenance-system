@@ -1,25 +1,25 @@
-import React, { createContext, Dispatch, SetStateAction, useState } from 'react';
+import  { createContext, useState, ReactNode, Dispatch, SetStateAction } from "react";
 
-interface AuthContextProps {
-    isAuthenticated: boolean;
-    setIsAuthenticated:Dispatch<SetStateAction<boolean>>;
+// Importamos los usuarios mockeados
+
+interface AuthContextType {
+  isAuthenticated: boolean;
+  setIsAuthenticated: Dispatch<SetStateAction<boolean>>;
 }
 
-export const AuthContext = createContext<AuthContextProps >({
-    isAuthenticated:false,
-    setIsAuthenticated: () => {}
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
+    !!localStorage.getItem("user")
+  );
 
 
-    return (
-        <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated }}>
-            {children}
-        </AuthContext.Provider>
-    );
+  return (
+    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-
+export default AuthContext

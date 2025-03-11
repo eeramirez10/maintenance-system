@@ -1,12 +1,7 @@
 // AddStepForm.tsx
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  Form,
-  Input,
   Select,
-  InputNumber,
-  DatePicker,
-  Button,
   message,
 } from 'antd';
 import { Step } from '../interface/equipment.type';
@@ -64,6 +59,7 @@ const AddStepForm: React.FC<AddStepFormProps> = ({ onSave, onCancel }) => {
     onSave(step);
     message.success('Guardado correctamente');
     resetStepValues();
+    onCancel()
   };
 
   return (

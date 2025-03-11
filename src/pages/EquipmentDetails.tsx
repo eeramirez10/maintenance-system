@@ -1,32 +1,35 @@
-// src/components/EquipmentDetails.tsx
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Card, Descriptions, Table, Button, Modal, Badge, message, Space } from 'antd';
-import { EditOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
-import { Equipment, Component } from '../types';
-import { QRCodeSVG as QRCode } from 'qrcode.react';
-import { calculateRemaining } from '../utils/calculateRemaining';
+import {
+  Card,
+  Descriptions,
+  Button,
+  Modal,
+  Badge,
+  message,
+  Space,
+  Table,
+} from 'antd';
+import {
+  EditOutlined,
+  DeleteOutlined,
+  ExclamationCircleOutlined,
+} from '@ant-design/icons';
 import { useEquipments } from '../hooks/useEquipments';
 import { useUser } from '../hooks/useUser';
 import mockUsers from '../mocks/users';
-import { ColumnsType } from 'antd/es/table';
-import { Routine } from '../interface/equipment.type';
-import { PreventiveRoutinesList } from '../components/PreventiveRoutinesList';
-import { CorrectiveRoutinesList } from '../components/CorrectiveRoutinesList';
+
+import type { RoutineGroup, Step } from '../interface/equipment.type';
 
 const { confirm } = Modal;
 
-interface EquipmentDetailsProps {
-  components: Component[];
-  onDeleteEquipment: (id: number) => void;
-}
-
-const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ components, onDeleteEquipment }) => {
+const EquipmentDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { equipments } = useEquipments();
-  const { user } = useUser(); // Obtener el usuario autenticado
-  const equipment = equipments.find((eq) => eq.id === Number(id));
+  const { equipments, deleteEquipment } = useEquipments();
+  const { user } = useUser();
+
+  const equipment = equipments.find((eq) => eq.id === id);
 
   if (!equipment) {
     return (
@@ -36,18 +39,13 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ components, onDelet
     );
   }
 
-  // Función para obtener el nombre del usuario por ID
+  // Obtener el nombre del usuario por ID
   const getUserName = (userId: number) => {
     const foundUser = mockUsers.find((u) => u.id === userId);
     return foundUser ? foundUser.name : 'Desconocido';
   };
 
-  // Filtrar componentes relacionados con este equipo
-  const relatedComponents = components.filter(
-    (component) => component.relatedEquipmentId === equipment.id
-  );
-
-  // Manejar la eliminación del equipo con confirmación
+  // Confirmación de eliminar equipo
   const handleDeleteEquipment = () => {
     confirm({
       title: '¿Estás seguro de que deseas eliminar este equipo?',
@@ -57,47 +55,73 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ components, onDelet
       okType: 'danger',
       cancelText: 'Cancelar',
       onOk() {
-        onDeleteEquipment(equipment.id);
+        deleteEquipment(equipment.id);
         message.success('Equipo eliminado exitosamente.');
-        navigate('/equipments'); // Redirige a la página principal después de eliminar
-      },
-      onCancel() {
-        // Acción en caso de cancelar
+        navigate('/equipments');
       },
     });
   };
 
-  // Configuración de columnas para la tabla de componentes relacionados
-  const componentColumns = [
+  // Columnas para Steps
+  const stepColumns = [
     {
-      title: 'Nombre',
+      title: 'Descripción del Paso',
+      dataIndex: 'stepDescription',
+      key: 'stepDescription',
+    },
+    {
+      title: 'Tipo',
+      dataIndex: 'routineType',
+      key: 'routineType',
+      render: (type: string) => type.charAt(0).toUpperCase() + type.slice(1),
+    },
+    {
+      title: 'Nombre del Criterio',
+      key: 'criteriaName',
+      render: (_: any, step: Step) => step.criteria?.name || '—',
+    },
+    {
+      title: 'Valor Actual',
+      key: 'criteriaValue',
+      render: (_: any, step: Step) => step.criteria?.currentValue ?? '—',
+    },
+    // Agrega más columnas si deseas (priorityPercentage, etc.)
+  ];
+
+  // Renderizado expandible de Steps en cada rutina
+  const expandedStepRender = (routine: RoutineGroup) => (
+    <Table
+      columns={stepColumns}
+      dataSource={routine.steps}
+      rowKey={(step) => step.id}
+      pagination={false}
+      bordered
+    />
+  );
+
+  // Columnas para Rutinas
+  const routineColumns = [
+    {
+      title: 'Nombre de la Rutina',
       dataIndex: 'name',
       key: 'name',
     },
     {
-      title: 'Tipo',
-      dataIndex: 'type',
-      key: 'type',
+      title: 'Descripción',
+      dataIndex: 'description',
+      key: 'description',
     },
     {
-      title: 'Acciones',
-      key: 'actions',
-      render: (_: any, record: Component) => (
-        <Space size="middle">
-          <Link to={`/component/${record.id}`}>
-            <Button type="primary" icon={<EditOutlined />} size="small">
-              Ver Componente
-            </Button>
-          </Link>
-        </Space>
-      ),
+      title: 'Fecha de Creación',
+      dataIndex: 'creationDate',
+      key: 'creationDate',
+    },
+    {
+      title: 'Cantidad de Pasos',
+      key: 'stepsCount',
+      render: (routine: RoutineGroup) => routine.steps?.length || 0,
     },
   ];
-
-  const preventiveRoutines = equipment.routines.filter( (r) => r.routineType === 'preventivo' )
-
-  const correctiveRoutines = equipment.routines.filter( (r) => r.routineType === 'correctivo' )
-
 
   return (
     <Card
@@ -121,7 +145,12 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ components, onDelet
             </Link>
           )}
           {user?.role === 'admin' && (
-            <Button type="primary" danger icon={<DeleteOutlined />} onClick={handleDeleteEquipment}>
+            <Button
+              type="primary"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={handleDeleteEquipment}
+            >
               Eliminar
             </Button>
           )}
@@ -138,9 +167,15 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ components, onDelet
             text={equipment.isActive ? 'Activo' : 'Inactivo'}
           />
         </Descriptions.Item>
-        <Descriptions.Item label="Creado Por">{getUserName(equipment.createdBy)}</Descriptions.Item>
-        <Descriptions.Item label="Última Edición Por">{getUserName(equipment.updatedBy)}</Descriptions.Item>
-        {/* Agrega más campos según sea necesario */}
+        <Descriptions.Item label="Status">
+          {equipment.status === 'operacion' ? 'En Operación' : 'En Falla'}
+        </Descriptions.Item>
+        <Descriptions.Item label="Creado Por">
+          {getUserName(equipment.createdBy)}
+        </Descriptions.Item>
+        <Descriptions.Item label="Última Edición Por">
+          {getUserName(equipment.updatedBy)}
+        </Descriptions.Item>
       </Descriptions>
 
       {/* Campos Personalizados */}
@@ -158,38 +193,22 @@ const EquipmentDetails: React.FC<EquipmentDetailsProps> = ({ components, onDelet
         )}
       </Card>
 
-      {/* Componentes Relacionados */}
-      <Card title="Componentes Relacionados" style={{ marginTop: '20px' }}>
-        {relatedComponents.length > 0 ? (
+      {/* Rutinas */}
+      <Card title="Rutinas" style={{ marginTop: '20px' }}>
+        {equipment.routines && equipment.routines.length > 0 ? (
           <Table
-            columns={componentColumns}
-            dataSource={relatedComponents}
-            rowKey="id"
+            columns={routineColumns}
+            dataSource={equipment.routines}
+            rowKey={(routine) => routine.id}
             pagination={false}
             bordered
+            expandable={{
+              expandedRowRender: expandedStepRender,
+              rowExpandable: (routine) => routine.steps && routine.steps.length > 0,
+            }}
           />
         ) : (
-          <p>No hay componentes relacionados.</p>
-        )}
-      </Card>
-
-
-
-      Mantenimientos Programados
-      <Card title="Rutinas Preventivas" style={{ marginTop: '20px' }}>
-        {preventiveRoutines?.length > 0 ? (
-          <PreventiveRoutinesList preventiveRoutines={preventiveRoutines} />
-        ) : (
-          <p>No hay Rutinas registradas.</p>
-        )}
-      </Card>
-
-
-      <Card title="Rutinas Correctivas" style={{ marginTop: '20px' }}>
-        {correctiveRoutines?.length > 0 ? (
-          <CorrectiveRoutinesList correctiveRoutines={correctiveRoutines} />
-        ) : (
-          <p>No hay Rutinas registradas.</p>
+          <p>No hay rutinas registradas.</p>
         )}
       </Card>
     </Card>

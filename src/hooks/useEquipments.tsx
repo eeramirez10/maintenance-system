@@ -1,20 +1,17 @@
-
-
 import { useContext } from 'react'
-
 import EquipmentContext from '../context/EquipmentContext'
 import { useUser } from './useUser';
-import { Equipment, Routine, Step } from '../interface/equipment.type';
+import { Equipment, RoutineGroup, Step } from '../interface/equipment.type';
 import { message } from 'antd';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4, v4 } from 'uuid';
 
 interface Props {
   equipments: Equipment[]
-  deleteEquipment: (equipmentId: number) => void
+  deleteEquipment: (equipmentId: string) => void
   handleAddEquipment: (equipment: Omit<Equipment, 'id'>) => void
   onEditEquipment: (editedEquipment: Equipment) => void
-  addRoutine: (equipmentId: number, rountine: Routine) => void
-  getEquipmentById: (id: number) => Equipment
+  addRoutine: (equipmentId: string, rountine: RoutineGroup) => void
+  getEquipmentById: (id: string) => Equipment[]
   addStep: (step: Step, equipmentId: string, routineId: string) => void
 
 }
@@ -22,15 +19,26 @@ interface Props {
 
 export const useEquipments = (): Props => {
 
-  const { equipments, setEquipments } = useContext(EquipmentContext)
+  const { equipments, setEquipments, } = useContext(EquipmentContext)
   const { user } = useUser()
 
-  const deleteEquipment = (equipmentId: number) => {
+  const deleteEquipment = (equipmentId: string) => {
     setEquipments(equipments.filter(equipment => equipment.id !== equipmentId))
   };
 
   const handleAddEquipment = (equipment: Omit<Equipment, 'id'>) => {
-    setEquipments([...equipments, { id: Date.now(), ...equipment, isActive: true, createdBy: user.id }]);
+
+ 
+    setEquipments([
+      ...equipments,
+      {
+        ...equipment,
+        id: v4(),
+        isActive: true,
+        createdBy: user.id,
+        routines: []
+      }
+    ]);
   };
 
   const onEditEquipment = (editedEquipment: Equipment) => {
@@ -40,7 +48,12 @@ export const useEquipments = (): Props => {
 
   }
 
-  const addRoutine = (equipmentId: number, rountine: Routine) => {
+  const addRoutine = (equipmentId: string, rountine: RoutineGroup) => {
+
+    const addRoutineId = {
+      ...rountine,
+      id: v4()
+    }
 
     const findEquipment = equipments.find(equipment => equipment.id === equipmentId)
 
@@ -48,7 +61,7 @@ export const useEquipments = (): Props => {
 
     if (!equipmentsRountines) return message.error('No hay rutinas que agregar')
 
-    const routines = [...equipmentsRountines, rountine]
+    const routines = [...equipmentsRountines, addRoutineId]
 
     const addRountine = equipments.map(equipment => {
 
@@ -68,6 +81,10 @@ export const useEquipments = (): Props => {
       ...step,
       id: uuidv4()
     }
+
+    console.log({equipmentId})
+
+    
 
     const indexEquipment = equipments.findIndex(eq => eq.id === equipmentId)
 

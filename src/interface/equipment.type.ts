@@ -1,3 +1,4 @@
+import { Moment } from "moment";
 
 
 export type CriteriaType = 'number' | 'date';
@@ -79,7 +80,7 @@ export interface RoutineGroup {
   id?: string;
   name: string;            // Nombre de la rutina (grupo)
   description: string;     // Descripción general de la rutina
-  creationDate: string;    // Fecha de creación
+  creationDate: Moment;    // Fecha de creación
   steps: Step[];           // Pasos detallados
 }
 

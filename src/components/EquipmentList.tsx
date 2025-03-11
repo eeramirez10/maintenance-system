@@ -16,7 +16,7 @@ import { QRCodeSVG as QRCode } from 'qrcode.react';
 import { useEquipments } from '../hooks/useEquipments';
 import { useUser } from '../hooks/useUser';
 import { usePermission } from '../hooks/usePermission';
-import { Equipment, Routine, RoutineGroup, Step } from '../interface/equipment.type';
+import { Equipment, RoutineGroup, Step } from '../interface/equipment.type';
 import CreateRoutineForm from './CreateRoutineForm';
 import AddStepForm from './AddStepForm';
 
@@ -28,24 +28,30 @@ const EquipmentList = () => {
   const { user } = useUser();
   const { equipments, deleteEquipment, addRoutine, addStep } = useEquipments();
 
-  const [selectedRoutine, setSelectedRoutine] = useState<String | null>()
+
+  console.log({ equipments })
+
+  const [selectedRoutine, setSelectedRoutine] = useState<string | null>()
 
   const userRole = user?.role;
 
   const permissions = usePermission({ userRole })
 
   const [isQRModalVisible, setIsQRModalVisible] = useState(false);
-  const [selectedEquipmentIdForQR, setSelectedEquipmentIdForQR] = useState<number | null>(null);
+  const [selectedEquipmentIdForQR, setSelectedEquipmentIdForQR] = useState<string | null>(null);
 
   const [openModalSteps, setOpenModalSteps] = useState(false)
 
-
-  const handleStepModalCancel = () => {
-    setOpenModalSteps(!openModalSteps)
-  }
+  const [isAddMaintenanceModalVisible, setIsAddMaintenanceModalVisible] = useState(false);
+  const [selectedEquipmentIdForMaintenance, setSelectedEquipmentIdForMaintenance] = useState<string | null>(null);
 
 
-  const showQRModal = (id: number) => {
+  // const handleStepModalCancel = () => {
+  //   setOpenModalSteps(!openModalSteps)
+  // }
+
+
+  const showQRModal = (id: string) => {
     setSelectedEquipmentIdForQR(id);
     setIsQRModalVisible(true);
   };
@@ -60,8 +66,7 @@ const EquipmentList = () => {
     setSelectedEquipmentIdForQR(null);
   };
 
-  const [isAddMaintenanceModalVisible, setIsAddMaintenanceModalVisible] = useState(false);
-  const [selectedEquipmentIdForMaintenance, setSelectedEquipmentIdForMaintenance] = useState<String | null>(null);
+
 
   const showAddMaintenanceModal = (id: string) => {
     setSelectedEquipmentIdForMaintenance(id);
@@ -69,8 +74,8 @@ const EquipmentList = () => {
     // Resetear mantenimientos al abrir el modal
   };
 
-  const showAddStepModal = (id: string) => {
-    setSelectedRoutine(id)
+  const showAddStepModal = () => {
+   
     setOpenModalSteps(true)
   }
 
@@ -83,10 +88,10 @@ const EquipmentList = () => {
   const handleAddMaintenanceCancel = () => {
     setIsAddMaintenanceModalVisible(false);
     setSelectedEquipmentIdForMaintenance(null);
-    handleResetValues();
+    
   };
 
-  const handleDeleteEquipmentFunc = (equipmentId: number) => {
+  const handleDeleteEquipmentFunc = (equipmentId: string) => {
     const equipment = equipments.find((eq) => eq.id === equipmentId);
     if (!equipment) {
       message.error('Equipo no encontrado.');
@@ -105,9 +110,10 @@ const EquipmentList = () => {
     }
   };
 
-  const handleOnSaveRoutine = (rountine: Routine) => {
+  const handleOnSaveRoutine = (rountine: RoutineGroup) => {
 
-    if (!selectedEquipmentIdForMaintenance) return
+
+    if (!selectedEquipmentIdForMaintenance) return message.error('No hay un equipo seleccionado')
 
     addRoutine(selectedEquipmentIdForMaintenance, rountine)
 
@@ -115,7 +121,9 @@ const EquipmentList = () => {
 
   const handleOnSaveStep = (step: Step) => {
 
-    addStep(step,selectedEquipmentIdForMaintenance, selectedRoutine  )
+    if(!selectedEquipmentIdForMaintenance) return message.error('No hay un equipo seleccionado')
+    if(!selectedRoutine) return message.error('No hay una rutina seleccionasa')
+    addStep(step, selectedEquipmentIdForMaintenance, selectedRoutine)
   }
 
   const [searchText, setSearchText] = useState<string>('');
@@ -179,7 +187,7 @@ const EquipmentList = () => {
       title: '#',
       dataIndex: 'index',
       key: 'index',
-      render: (_: any, __: any, index: number) => index + 1, // Número de índice dinámico
+      render: (_: unknown, __: unknown, index: number) => index + 1, // Número de índice dinámico
     },
     {
       title: 'Nombre',
@@ -198,7 +206,7 @@ const EquipmentList = () => {
     {
       title: 'Status',
       key: 'isActive',
-      render: (_: any, record: Equipment) => (
+      render: (_: unknown, record: Equipment) => (
         <Badge
           status={record.isActive ? 'success' : 'error'}
           text={record.isActive ? 'Activo' : 'Inactivo'}
@@ -213,7 +221,7 @@ const EquipmentList = () => {
     {
       title: 'Acciones',
       key: 'actions',
-      render: (_: any, record: Equipment) => (
+      render: (_: unknown, record: Equipment) => (
         <Dropdown overlay={menu(record)} trigger={['click']}>
           <Button type="primary">
             Opciones <DownOutlined />
@@ -223,47 +231,7 @@ const EquipmentList = () => {
     },
   ];
 
-  // // Función para expandir filas y mostrar componentes relacionados
-  // const expandedRowRender = (record: Equipment) => {
-  //   // Filtrar componentes relacionados con el equipo actual
-  //   const relatedComponents = components.filter(
-  //     (component) => component.relatedEquipmentId === record.id
-  //   );
 
-  //   return (
-  //     <Table
-  //       columns={[
-  //         {
-  //           title: 'Nombre del Componente',
-  //           dataIndex: 'name',
-  //           key: 'name',
-  //           width: '40%',
-  //         },
-  //         {
-  //           title: 'Tipo',
-  //           dataIndex: 'type',
-  //           key: 'type',
-  //           width: '30%',
-  //         },
-  //         {
-  //           title: 'Acciones',
-  //           key: 'actions',
-  //           render: (_: any, component: Component) => (
-  //             <Space size="middle">
-  //               <Link to={`/component/${component.id}`}>
-  //                 <Button type="default">Ver Componente</Button>
-  //               </Link>
-  //             </Space>
-  //           ),
-  //           width: '30%',
-  //         },
-  //       ]}
-  //       dataSource={relatedComponents}
-  //       rowKey="id"
-  //       pagination={false} // Sin paginación para la tabla interna
-  //     />
-  //   );
-  // };
 
   const expandedRowRenderSteps = (record: RoutineGroup) => {
 
@@ -284,13 +252,13 @@ const EquipmentList = () => {
         title: 'Criterio',
         dataIndex: 'criteria.name',
         key: 'criteria.name',
-        render:(_:any, record: Step) => record.criteria?.name 
+        render: (_: unknown, record: Step) => record.criteria?.name
       },
       {
         title: 'Valor Actual',
         dataIndex: 'criteria.currentValue',
         key: 'criteria.currentValue',
-        render:(_:any, record: Step) => record.criteria?.currentValue 
+        render: (_: unknown, record: Step) => record.criteria?.currentValue
 
       },
       {
@@ -303,13 +271,13 @@ const EquipmentList = () => {
 
     return (
       <Table
-      columns={stepColumns}
-      dataSource={steps}
-      rowKey={(record) => record.stepDescription} // o un ID único si lo tienes
-      pagination={false}
-      bordered
- 
-    />
+        columns={stepColumns}
+        dataSource={steps}
+        rowKey={(record) => record.stepDescription} // o un ID único si lo tienes
+        pagination={false}
+        bordered
+
+      />
 
     )
   }
@@ -317,6 +285,8 @@ const EquipmentList = () => {
   const expandedRowRender = (record: Equipment) => {
     // Extraemos las rutinas
     const routineGroups = record.routines || [];
+
+    
 
     // Definimos las columnas para la tabla de rutinas (RoutineGroup)
     const routineColumns = [
@@ -346,13 +316,17 @@ const EquipmentList = () => {
 
         render: (routine: RoutineGroup) => (
           <Button
-            onClick={() => showAddStepModal(routine?.id ?? '')}
+            onClick={() => {
+              showAddStepModal()
+              setSelectedRoutine(routine?.id)
+              setSelectedEquipmentIdForMaintenance(record.id)
+            }}
           > Agregar paso</Button>
         ),
       },
     ];
 
-    
+
     return (
       <Table
         columns={routineColumns}
@@ -385,7 +359,7 @@ const EquipmentList = () => {
           {permissions.canAddEquipment && (
             <Link to="/add-equipment">
               <Button type="primary" icon={<PlusOutlined />}>
-                + Nuevo Equipo
+                Nuevo Equipo
               </Button>
             </Link>
           )}
@@ -398,14 +372,14 @@ const EquipmentList = () => {
         rowKey="id"
         expandable={{
           expandedRowRender, // Filas expandibles
-          rowExpandable: (record) => record.routines.length > 0, 
-          onExpand: (expanded, record) =>{
-            const equipmentId = expanded ? record.id : null
+          rowExpandable: (record) => record.routines.length > 0,
+          // onExpand: (expanded, record) => {
+          //   const equipmentId = expanded ? record.id : null
 
-            setSelectedEquipmentIdForMaintenance(equipmentId)
-          }
+          //   setSelectedEquipmentIdForMaintenance(equipmentId)
+          // }
         }}
-       
+
         pagination={{ pageSize: 5 }} // Paginación de la tabla principal
         bordered
         locale={{
@@ -439,26 +413,21 @@ const EquipmentList = () => {
       {/* Modal para Agregar Mantenimiento Programado */}
       <Modal
         title="Agregar Rutina"
-        okButtonProps={{
-          ghost: true
-        }}
+        footer={[]}
         open={isAddMaintenanceModalVisible}
         onCancel={handleAddMaintenanceCancel}
-        cancelText="Cancelar"
         width={800}
       >
         <h2 className="text-xl font-bold mt-6">Rutinas</h2>
 
-        <CreateRoutineForm onSave={handleOnSaveRoutine} />
+        <CreateRoutineForm onSave={handleOnSaveRoutine} onClose={handleAddMaintenanceCancel}/>
 
       </Modal>
 
 
       <Modal
         title="Agregar pasos a rutina"
-        okButtonProps={{
-          ghost: true
-        }}
+        footer={[]}
         open={openModalSteps}
         onCancel={handleAddStepCancel}
         cancelText="Cancelar"
@@ -467,9 +436,7 @@ const EquipmentList = () => {
         <h2 className="text-xl font-bold mt-6">Rutinas</h2>
         {/* <RoutineGroupForm onSave={handleOnSaveRoutine} /> */}
 
-        <AddStepForm onSave={handleOnSaveStep} onCancel={function (): void {
-          throw new Error('Function not implemented.');
-        } } />
+        <AddStepForm onSave={handleOnSaveStep} onCancel={handleAddStepCancel} />
 
       </Modal>
     </div>

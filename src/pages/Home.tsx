@@ -1,21 +1,13 @@
 import React from 'react';
 import EquipmentList from '../components/EquipmentList';
-import { Component, Equipment } from '../types';
 
-interface HomeProps {
-  equipments: Equipment[];
-  components: Component[]
- 
-}
 
-const Home: React.FC<HomeProps> = ({ equipments,components }) => {
+const Home: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      {equipments.length > 0 ? (
-        <EquipmentList  components={components} />
-      ) : (
-        <p className="text-center text-gray-500">No hay equipos registrados.</p>
-      )}
+
+      <EquipmentList />
+
     </div>
   );
 };

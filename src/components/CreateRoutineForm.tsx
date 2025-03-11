@@ -7,24 +7,25 @@ import moment from 'moment';
 
 interface CreateRoutineFormProps {
   onSave: (routine: RoutineGroup) => void;
+  onClose: () => void
 }
 
-const CreateRoutineForm: React.FC<CreateRoutineFormProps> = ({ onSave }) => {
-  const { routineGroup, handleChange, resetGroup } = useRoutineGroup();
+const CreateRoutineForm: React.FC<CreateRoutineFormProps> = ({ onSave, onClose }) => {
+  const { routineGroup, handleChange } = useRoutineGroup();
   const [form] = Form.useForm();
 
   /**
    * Cuando el usuario hace submit, validamos con Ant Design
    * y luego llamamos a onSave(routineGroup).
    */
-  const handleFinish = (values: any) => {
+  const handleFinish = (values: RoutineGroup) => {
+
     // Asignamos los campos al hook
     handleChange('name', values.name || '');
     handleChange('description', values.description || '');
     // Convertimos la fecha a string (YYYY-MM-DD)
-    const dateString = values.creationDate
-      ? values.creationDate.format('YYYY-MM-DD')
-      : '';
+    const dateString = values.creationDate.format('YYYY-MM-DD')
+      
     handleChange('creationDate', dateString);
 
     // Verificamos que no falte nada
@@ -41,6 +42,9 @@ const CreateRoutineForm: React.FC<CreateRoutineFormProps> = ({ onSave }) => {
       return;
     }
 
+   
+  
+
     // Llamamos a onSave y reseteamos
     onSave({
       ...routineGroup,
@@ -49,8 +53,11 @@ const CreateRoutineForm: React.FC<CreateRoutineFormProps> = ({ onSave }) => {
       description: values.description,
       creationDate: dateString,
     });
-    // resetGroup();
-    form.resetFields()
+
+    
+    onClose()
+    
+    
   };
 
   return (
@@ -64,7 +71,8 @@ const CreateRoutineForm: React.FC<CreateRoutineFormProps> = ({ onSave }) => {
         label="Nombre de la Rutina"
         name="name"
         rules={[{ required: true, message: 'Ingrese el nombre de la rutina' }]}
-        initialValue={routineGroup.name}
+        
+      
       >
         <Input
           placeholder="Ej. Mantenimiento anual"
@@ -76,7 +84,7 @@ const CreateRoutineForm: React.FC<CreateRoutineFormProps> = ({ onSave }) => {
         label="Descripción de la Rutina"
         name="description"
         rules={[{ required: true, message: 'Ingrese la descripción' }]}
-        initialValue={routineGroup.description}
+        
       >
         <Input.TextArea
           rows={3}
@@ -89,14 +97,13 @@ const CreateRoutineForm: React.FC<CreateRoutineFormProps> = ({ onSave }) => {
         label="Fecha de Creación"
         name="creationDate"
         rules={[{ required: true, message: 'Seleccione la fecha de creación' }]}
+        
         // Convierte la fecha del hook a Moment si existe
-        initialValue={
-          routineGroup.creationDate
-            ? moment(routineGroup.creationDate, 'YYYY-MM-DD')
-            : null
-        }
+
       >
-        <DatePicker style={{ width: '100%' }} />
+        <DatePicker style={{ width: '100%' }} onChange={(e) =>{
+          handleChange('creationDate', e.format('YYYY-MM-DD'));
+        }} />
       </Form.Item>
 
       <Form.Item>

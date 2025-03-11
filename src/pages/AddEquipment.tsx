@@ -18,8 +18,9 @@ import {
   MinusCircleOutlined,
   UploadOutlined,
 } from '@ant-design/icons';
-import { Equipment, CustomField, Maintenance, ScheduledMaintenance } from '../types';
+import { CustomField, Maintenance, ScheduledMaintenance } from '../types';
 import { useEquipments } from '../hooks/useEquipments';
+import { Equipment } from '../interface/equipment.type';
 
 const { Option } = Select;
 
@@ -173,17 +174,20 @@ const AddEquipment: React.FC = () => {
     }
 
     const newEquipment: Equipment = {
-      id: Date.now(), // Generar un ID único
+      id: '', // Generar un ID único
       name,
       type,
       image,
       customFields,
-      maintenances,
-      scheduledMaintenances,
+      routines: [],
+      status: 'operacion',
+      isActive: false,
+      createdBy: 0,
+      updatedBy: 0
     };
     handleAddEquipment(newEquipment);
     message.success('Equipo agregado exitosamente.');
-    navigate('/');
+    navigate('/equipments');
   };
 
   return (
